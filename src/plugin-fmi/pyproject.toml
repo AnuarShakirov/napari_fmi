@@ -1,0 +1,161 @@
+[project]
+name = "plugin-fmi"
+dynamic = ["version"]
+description = "A simple plugin to use FooBar segmentation within napari"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Anuar"},
+  {email = "yourname@example.com"},
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Framework :: napari",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "magicgui",
+    "qtpy",
+    "scikit-image",
+
+]
+
+[project.optional-dependencies]
+testing = [
+    "tox",
+    "pytest",  # https://docs.pytest.org/en/latest/contents.html
+    "pytest-cov",  # https://pytest-cov.readthedocs.io/en/latest/
+    "pytest-qt",  # https://pytest-qt.readthedocs.io/en/latest/
+    "napari",
+    "pyqt5",
+]
+
+[project.entry-points."napari.manifest"]
+plugin-fmi = "plugin_fmi:napari.yaml"
+
+
+
+[build-system]
+requires = ["setuptools>=42.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml"]
+
+
+[tool.setuptools.dynamic]
+version = { attr = "plugin_fmi.__init__.__version__" }
+
+[tool.black]
+exclude = '''
+(
+  /(
+    | \.git
+    | \.mypy_cache
+    | \.venv
+  )/
+)
+'''
+include = '\.pyi?$'
+line-length = 120
+skip-string-normalization = true
+
+[tool.mypy]
+allow_redefinition = true
+disallow_incomplete_defs = true
+files = "."
+ignore_missing_imports = true
+python_version = "3.11"
+strict_optional = true
+warn_return_any = false
+warn_unused_configs = true
+
+[tool.ruff]
+line-length = 120
+lint.select = ["ALL"]
+lint.ignore = [
+    # Real ignore
+    "D104", "D105", "D107", "D203", "D205", "D213", "D400", "D401", "D406", "D407", "D413", "EM101", "EM102",
+    "FBT", "FIX002", "FIX004", "G004", "PD002", "PD011", "PD901", "RUF001", "RUF002", "RUF003", "TRY003",
+    "TD002", "TD003", "TD004", "TD005", # flake8-todos
+
+
+    "SLOT000", # flake8-slots
+    "B006", "B007", "B008", "B010", "B018", "B023", "B024", "B026", "B905", # flake8-bugbear
+
+
+    "PT001", "PT003", "PT006", "PT009", "PT011", "PT012", "PT017", "PT018", "PT022", "PT023", # flake8-pytest-style
+    "SLF001", # flake8-self
+    "S101", "S104", "S108", "S113", "S301", "S311", "S506", "S603", "S607", "S608", # flake8-bandit
+
+
+    "E501", "E712", "E713", "E714", "E731", "E741", # Error
+    "ARG001", "ARG002", "ARG003", "ARG005", # flake8-unused-arguments
+    "N802", "N803", "N804", "N805", "N806", "N813", "N815", "N818", # pep8-naming
+
+
+    "UP006", "UP007", "UP008", "UP015", "UP027", "UP035", "UP038", # pyupgrade
+    "PTH100", "PTH103", "PTH107", "PTH110", "PTH112", "PTH113", "PTH118", "PTH120", "PTH123", # flake8-use-pathlib
+    "DTZ001", "DTZ002", "DTZ005", "DTZ007", "DTZ011", # flake8-datetimez
+    "TRY004", "TRY201", "TRY300", "TRY301", # tryceratops
+    "PD003", "PD008", "PD015", # pandas-vet
+
+
+    "A001", "A003", # flake8-builtins
+    "ISC001", "ISC003", # flake8-implicit-str-concat
+    "PERF401", # Perflint
+    "RUF005", "RUF010", "RUF012", # Ruff-specific rules
+    "INP001", # flake8-no-pep420
+    "PLW2901", # Warning
+    "C901", # mccabe
+    "G003", # flake8-logging-format
+    "PIE800", "PIE804", # flake8-pie
+    "T201", # flake8-print
+    "SIM102", "SIM108", "SIM110", "SIM117", "SIM118", "SIM300", # flake8-simplify
+    "F401", "F811", # Pyflakes
+    # "ASYNC101",  # flake8-async (REMOVE THIS LINE)
+]
+target-version = "py311"
+exclude = [".venv", ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "PLR2004", "PLR0913"]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+no-lines-before = ["future", "standard-library"]
+known-local-folder = ['src', 'plugin_fmi']
+
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.ruff.lint.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[tool.ruff.lint.pep8-naming]
+ignore-names = [
+    "setUp", "tearDown", "setUpClass", "tearDownClass", "setUpModule", "tearDownModule", "asyncSetUp", "asyncTearDown", "setUpTestData", "failureException", "longMessage", "maxDiff", # default
+    "X*", "df",
+]

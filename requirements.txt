@@ -1,0 +1,13 @@
+cookiecutter
+h5py
+matplotlib
+napari[all]==0.4.19.post1
+numpy
+onnx==1.15.0
+onnxruntime==1.17.1
+opencv-python
+openpyxl
+pandas
+PyQtChart
+pyqtgraph
+tqdm
