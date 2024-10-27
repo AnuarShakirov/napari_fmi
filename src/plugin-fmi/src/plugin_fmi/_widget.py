@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
 import cv2
 import numpy as np
 import pandas as pd
@@ -9,7 +10,7 @@ from napari.utils.notifications import show_info
 from napari.viewer import Viewer
 from qtpy.QtWidgets import (
     QFileDialog,
-    QTableWidgetItem,
+    QTableWidgetItem
 )
 
 from .gui import FMIProcessorBase
@@ -22,6 +23,8 @@ if TYPE_CHECKING:
 CHANNELS_TO_PARSE: list = ["DYN_HRUT", "DYN_HRLT", "STA_HRLT", "STA_HRUT"]
 IMAGE_SCALE: int = 20
 DEPTH_KEY: str = "DEPT"
+
+
 
 class FMIProcessor(FMIProcessorBase):
     def __init__(self, napari_viewer: Viewer) -> None:
@@ -101,15 +104,17 @@ class FMIProcessor(FMIProcessorBase):
 
     def configure_slider_for_channels(self) -> None:
         """Method to configure slider with channels."""
-        self.navigation_slider_channels.setMinimum(0)
-        self.navigation_slider_channels.setMaximum(len(self.relevant_channels) - 1)
-        self.navigation_slider_channels.setValue(0)
+        if len(self.relevant_channels):
+            self.navigation_slider_channels.setMinimum(0)
+            self.navigation_slider_channels.setMaximum(len(self.relevant_channels) - 1)
+            self.navigation_slider_channels.setValue(0)
 
     def configure_slider_for_threshold(self) -> None:
         """Method to configure slider for threshold value."""
-        self.slider_threshold.setMinimum(0)
-        self.slider_threshold.setMaximum(np.max(self.current_file[self.current_channel]))
-        self.slider_threshold.setValue(self.current_threshold)
+        if len(self.relevant_channels):
+            self.slider_threshold.setMinimum(0)
+            self.slider_threshold.setMaximum(np.max(self.current_file[self.current_channel]))
+            self.slider_threshold.setValue(self.current_threshold)
 
     def update_file_info(self) -> None:
         """Method to update info about current file."""
@@ -214,8 +219,6 @@ class FMIProcessor(FMIProcessorBase):
             visible=False,
         )
         self.plot_fmi_mask()
-
-
 
     def plot_fmi_mask(self) -> None:
         """Method to plot fmi mask according to threshold value."""
