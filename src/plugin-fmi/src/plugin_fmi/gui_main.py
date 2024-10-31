@@ -206,7 +206,7 @@ class FMIProcessorBase(QWidget):
 
         # button to save results
         self.button_save_results = QPushButton("💾 Save result")
-        self.button_save_results.setFont(self.get_font(size=10, italic=True))
+        self.button_save_results.setFont(self.get_font(size=10, italic=False))
         # style button
         self.button_save_results.setStyleSheet(
             """
@@ -221,8 +221,7 @@ class FMIProcessorBase(QWidget):
                                                     }
                                                     QPushButton:disabled {
                                                             background-color: #A9A9A9;
-                                                            color: #FFFFFF;
-                                                            }
+                                                            color: #FFFFFF;                                                   }
 
                                                     """,
         )
@@ -230,6 +229,11 @@ class FMIProcessorBase(QWidget):
         # disable the button
         self.button_save_results.setEnabled(False)
         self.layout.addWidget(self.button_save_results)
+
+        # button to init separate window with logging data
+        self.button_align_with_logs = QPushButton("📈 Align with logging data")
+        self.button_align_with_logs.setFont(self.get_font(size=10, italic=False))
+        self.layout.addWidget(self.button_align_with_logs)
         self.setLayout(self.layout)
 
     @staticmethod

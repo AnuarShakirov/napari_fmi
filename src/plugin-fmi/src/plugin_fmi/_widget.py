@@ -13,10 +13,10 @@ from qtpy.QtWidgets import (
     QTableWidgetItem
 )
 
-from .gui import FMIProcessorBase
+from .gui_main import FMIProcessorBase
 from .loaders import get_available_files, load_fmi_pickle
 from .processing import get_boolean_mask, get_whashout_curve
-
+from .gui_logs import LogLayout
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -64,6 +64,8 @@ class FMIProcessor(FMIProcessorBase):
         self.slider_aspect_ratio.valueChanged.connect(self.update_aspect_ratio)
         # save button
         self.button_save_results.clicked.connect(self.save_segmentation_results)
+        # align with logging data button
+        self.button_align_with_logs.clicked.connect(self.open_logs_layout)
 
     def load_image_folder(self) -> None:
         """Method to load folder with files."""
@@ -277,3 +279,8 @@ class FMIProcessor(FMIProcessorBase):
         path_to_save: Path = self.path_img_files / save_name
         cv2.imwrite(str(path_to_save.resolve()), self.mask_layer.data)
         show_info(f"Results for {file_name} were saved to .xlsx and .png files!")
+
+    def open_logs_layout(self) -> None:
+        """Method to start new layout for logging data processing."""
+        self.log_window = LogLayout(napari_viewer=self.viewer)
+        self.log_window.show()
