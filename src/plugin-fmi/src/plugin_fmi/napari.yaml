@@ -3,7 +3,7 @@ display_name: FMIProcessor
 contributions:
   commands:
     - id: plugin-fmi.make_qwidget
-      python_name: plugin_fmi._widget:FMIProcessor
+      python_name: plugin_fmi.widget_main:FMIProcessor
       title: Make example QWidget
   widgets:
     - command: plugin-fmi.make_qwidget

@@ -8,22 +8,20 @@ import numpy as np
 import pandas as pd
 from napari.utils.notifications import show_info
 from napari.viewer import Viewer
-from qtpy.QtWidgets import (
-    QFileDialog,
-    QTableWidgetItem
-)
+from qtpy.QtWidgets import QFileDialog, QTableWidgetItem
 
+from .widget_logs import LogsProcessor
 from .gui_main import FMIProcessorBase
 from .loaders import get_available_files, load_fmi_pickle
 from .processing import get_boolean_mask, get_whashout_curve
-from .gui_logs import LogLayout
+
+
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
 CHANNELS_TO_PARSE: list = ["DYN_HRUT", "DYN_HRLT", "STA_HRLT", "STA_HRUT"]
 IMAGE_SCALE: int = 20
 DEPTH_KEY: str = "DEPT"
-
 
 
 class FMIProcessor(FMIProcessorBase):
@@ -258,14 +256,13 @@ class FMIProcessor(FMIProcessorBase):
 
     def save_segmentation_results(self) -> None:
         """Method to save segmentation results to .xlsx file."""
-
         df_results = pd.DataFrame(
             {
                 "Depth": self.current_file[DEPTH_KEY],
-                "Whashout": self.whashout_curve[:, 1] / self.fmi_mask.shape[1]  # normalize to width of the image
-            }
+                "Whashout": self.whashout_curve[:, 1] / self.fmi_mask.shape[1],  # normalize to width of the image
+            },
         )
-        file_name: str = self.fmi_image_list[self.index_file].name.split('.')[0]
+        file_name: str = self.fmi_image_list[self.index_file].name.split(".")[0]
         save_name: str = f"{file_name}_{self.current_threshold}.xlsx"
         path_to_export: Path = self.path_xlsx_files / save_name
         df_results.to_excel(path_to_export.resolve(), index=False)
@@ -273,8 +270,8 @@ class FMIProcessor(FMIProcessorBase):
         show_info(f"Results for {file_name} were saved to .xlsx file!")
 
     def save_mask(self) -> None:
-        """Method to save the mask"""
-        file_name: str = self.fmi_image_list[self.index_file].name.split('.')[0]
+        """Method to save the mask."""
+        file_name: str = self.fmi_image_list[self.index_file].name.split(".")[0]
         save_name: str = f"{file_name}_{self.current_threshold}.png"
         path_to_save: Path = self.path_img_files / save_name
         cv2.imwrite(str(path_to_save.resolve()), self.mask_layer.data)
@@ -282,5 +279,5 @@ class FMIProcessor(FMIProcessorBase):
 
     def open_logs_layout(self) -> None:
         """Method to start new layout for logging data processing."""
-        self.log_window = LogLayout(napari_viewer=self.viewer)
+        self.log_window = LogsProcessor(napari_viewer=self.viewer)
         self.log_window.show()

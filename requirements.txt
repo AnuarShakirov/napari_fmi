@@ -12,3 +12,8 @@ PyQtChart
 pyqtgraph
 tqdm
 briefcase
+black
+ruff
+lasio
+PyQtWebEngine
+plotly

@@ -1,5 +1,6 @@
 __version__ = "0.0.1"
 
-from ._widget import FMIProcessor
+from .widget_main import FMIProcessor
+
 
 __all__ = ["FMIProcessor"]

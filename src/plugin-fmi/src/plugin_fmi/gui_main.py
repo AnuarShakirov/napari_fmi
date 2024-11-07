@@ -18,6 +18,7 @@ from qtpy.QtWidgets import (
 )
 from superqt import QCollapsible, QLabeledSlider
 
+
 COLOR_FONT_TITLE: str = "#008170"
 COLOR_FONT_GENERAL: str = "white"
 BORDER_RADIUS_BUTTONS: str = "5px"
@@ -238,10 +239,10 @@ class FMIProcessorBase(QWidget):
 
     @staticmethod
     def get_font(
-            size: int,
-            style: str = "Arial",
-            bold: bool = False,
-            italic: bool = False,
+        size: int,
+        style: str = "Arial",
+        bold: bool = False,
+        italic: bool = False,
     ) -> QFont:
         """Methods returns configuration for the font style and size."""
         font = QFont()
@@ -264,11 +265,11 @@ class FMIProcessorBase(QWidget):
 
     @staticmethod
     def style_button(
-            button: QPushButton,
-            bg_init_color: str,
-            bg_hover_color: str,
-            border_radius: str = BORDER_RADIUS_BUTTONS,
-            text_color: str = COLOR_FONT_GENERAL,
+        button: QPushButton,
+        bg_init_color: str,
+        bg_hover_color: str,
+        border_radius: str = BORDER_RADIUS_BUTTONS,
+        text_color: str = COLOR_FONT_GENERAL,
     ) -> None:
         """Method to style button."""
         button.setStyleSheet(
