@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from napari.viewer import Viewer
 from qtpy.QtCore import Qt, QPoint
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import QHBoxLayout, QLabel, QMainWindow, QPushButton, QSizePolicy, QSpacerItem
+from qtpy.QtWidgets import QFormLayout, QHBoxLayout, QLabel, QMainWindow, QPushButton, QSizePolicy, QSpacerItem
 from qtpy.QtWidgets import QWidget, QVBoxLayout
 
 from qtpy.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QDialog
@@ -56,7 +56,8 @@ class LogsBase(QMainWindow):
         self.set_font_color(self.label_load_folders)
         self.left_layout.addWidget(self.label_load_folders)
         self.add_spacer_left()
-        # buttons to load data
+        
+        # Button to load well logging data
         self.button_well_logging = QPushButton("Well logging data")
         self.button_well_logging.setFont(self.get_font(size=11))
         self.style_button(
@@ -66,7 +67,27 @@ class LogsBase(QMainWindow):
         )
         self.left_layout.addWidget(self.button_well_logging)
         self.add_spacer_left()
+        
+        
+        # Show the selected file with well logs
+        self.well_log_file_form_widget = QWidget()
+        self.well_log_file_form_layout = QFormLayout()
+        self.well_log_file_form_layout.setContentsMargins(0, 3, 0, 3)
+        self.well_log_file_form_widget.setLayout(self.well_log_file_form_layout)
+        self.left_layout.addWidget(self.well_log_file_form_widget)
 
+        self.label_current_well_log_file = QLabel("Well logging file:")
+        self.label_current_well_log_file.setFont(self.get_font(size=10))
+        self.set_font_color(self.label_current_well_log_file, COLOR_FONT_GENERAL)  # Set font color to white
+
+        self.value_current_well_log_file = QLabel("...")
+        self.value_current_well_log_file.setFont(self.get_font(size=10, bold=True))
+        self.set_font_color(self.value_current_well_log_file, COLOR_FONT_GENERAL)  # Set font color to white
+
+        self.well_log_file_form_layout.addRow(self.label_current_well_log_file, self.value_current_well_log_file)
+
+
+        # Button to load formation tops data
         self.button_formation_tops = QPushButton("Formation tops data")
         self.button_formation_tops.setFont(self.get_font(size=11))
         self.style_button(
@@ -77,6 +98,24 @@ class LogsBase(QMainWindow):
         self.left_layout.addWidget(self.button_formation_tops)
         self.add_spacer_left()
 
+        # Show the selected file with formation tops
+        self.formations_form_widget = QWidget()
+        self.formations_form_layout = QFormLayout()
+        self.formations_form_layout.setContentsMargins(0, 3, 0, 3)
+        self.formations_form_widget.setLayout(self.formations_form_layout)
+        self.left_layout.addWidget(self.formations_form_widget)
+
+        self.label_current_formations_file = QLabel("Formations file:")
+        self.label_current_formations_file.setFont(self.get_font(size=10))
+        self.set_font_color(self.label_current_formations_file, COLOR_FONT_GENERAL)  # Set font color to white
+
+        self.value_current_formations_file = QLabel("...")
+        self.value_current_formations_file.setFont(self.get_font(size=10, bold=True))
+        self.set_font_color(self.value_current_formations_file, COLOR_FONT_GENERAL)  # Set font color to white
+
+        self.formations_form_layout.addRow(self.label_current_formations_file, self.value_current_formations_file)
+
+        # Button to load drilling data
         self.button_drilling_data = QPushButton("Drilling data")
         self.button_drilling_data.setFont(self.get_font(size=11))
         self.style_button(
@@ -86,13 +125,32 @@ class LogsBase(QMainWindow):
         )
         self.left_layout.addWidget(self.button_drilling_data)
         self.add_spacer_left()
+        
+        
+        # Show the selected file with drilling data
+        self.drill_data_form_widget = QWidget()
+        self.drill_data_form_layout = QFormLayout()
+        self.drill_data_form_layout.setContentsMargins(0, 3, 0, 3)
+        self.drill_data_form_widget.setLayout(self.drill_data_form_layout)
+        self.left_layout.addWidget(self.drill_data_form_widget)
+
+        self.label_current_drill_data_file = QLabel("Drilling data file:")
+        self.label_current_drill_data_file.setFont(self.get_font(size=10))
+        self.set_font_color(self.label_current_drill_data_file, COLOR_FONT_GENERAL)  # Set font color to white
+
+        self.value_current_drill_data_file = QLabel("...")
+        self.value_current_drill_data_file.setFont(self.get_font(size=10, bold=True))
+        self.set_font_color(self.value_current_drill_data_file, COLOR_FONT_GENERAL)  # Set font color to white
+
+        self.drill_data_form_layout.addRow(self.label_current_drill_data_file, self.value_current_drill_data_file)
+        
 
         # test selectbox
         items = ["Option 1", "Option 2", "Option 3"]
         self.multiselect = MultiSelectComboBox(items)
         self.left_layout.addWidget(self.multiselect)
 
-        # button to run visualizations
+        # Button to run visualizations
         self.button_visualize_data = QPushButton("Visualize data")
         self.button_visualize_data.setFont(self.get_font(size=11))
         self.style_button(
@@ -101,6 +159,22 @@ class LogsBase(QMainWindow):
             bg_hover_color=COLOR_BUTTON_VISUALIZE_HOVER,
         )
         self.left_layout.addWidget(self.button_visualize_data)
+        self.add_spacer_left()
+        
+        # test selectbox for cross-plot
+        items_logs = ["Log 1", "Log 2", "Log 3"]
+        self.multiselect = MultiSelectComboBox(items_logs)
+        self.left_layout.addWidget(self.multiselect)
+        
+        # button to run cross-plot visualizations
+        self.button_visualize_crossplot = QPushButton("Make Cross-plot")
+        self.button_visualize_crossplot.setFont(self.get_font(size=11))
+        self.style_button(
+            self.button_visualize_crossplot,
+            bg_init_color=COLOR_BUTTON_VISUALIZE,
+            bg_hover_color=COLOR_BUTTON_VISUALIZE_HOVER,
+        )
+        self.left_layout.addWidget(self.button_visualize_crossplot)
         self.add_spacer_left()
 
         # configure style for layouts
