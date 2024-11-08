@@ -18,7 +18,6 @@ from qtpy.QtWidgets import (
 )
 from superqt import QCollapsible, QLabeledSlider
 
-
 COLOR_FONT_TITLE: str = "#008170"
 COLOR_FONT_GENERAL: str = "white"
 BORDER_RADIUS_BUTTONS: str = "5px"
@@ -141,6 +140,17 @@ class FMIProcessorBase(QWidget):
         self.layout.addWidget(self.list_of_images)
         self.add_spacer()
 
+        # buttons to navigate through fmi files
+        navigation_layout = QHBoxLayout()
+        self.previous_file_button = QPushButton("◀️ Previous FMI file")
+        self.next_file_button = QPushButton("Next FMI file ▶️")
+        self.previous_file_button.setFont(self.get_font(size=10, italic=True))
+        self.next_file_button.setFont(self.get_font(size=10, italic=True))
+        navigation_layout.addWidget(self.previous_file_button)
+        navigation_layout.addWidget(self.next_file_button)
+        self.layout.addLayout(navigation_layout)
+        self.add_spacer()
+
         # label for current channel of FMI
         self.channel_form_widget = QWidget()
         self.channel_form_layout = QFormLayout()
@@ -163,17 +173,6 @@ class FMIProcessorBase(QWidget):
         self.navigation_slider_channels = QLabeledSlider()
         self.navigation_slider_channels.setOrientation(Qt.Orientation.Horizontal)
         self.layout.addWidget(self.navigation_slider_channels)
-
-        # buttons to navigate through fmi files
-        navigation_layout = QHBoxLayout()
-        self.previous_file_button = QPushButton("◀️ Previous FMI file")
-        self.next_file_button = QPushButton("Next FMI file ▶️")
-        self.previous_file_button.setFont(self.get_font(size=10, italic=True))
-        self.next_file_button.setFont(self.get_font(size=10, italic=True))
-        navigation_layout.addWidget(self.previous_file_button)
-        navigation_layout.addWidget(self.next_file_button)
-        self.layout.addLayout(navigation_layout)
-        self.add_spacer()
 
         # slider to change mask threshold value
         navigation_layout_sliders = QHBoxLayout()
@@ -239,10 +238,10 @@ class FMIProcessorBase(QWidget):
 
     @staticmethod
     def get_font(
-        size: int,
-        style: str = "Arial",
-        bold: bool = False,
-        italic: bool = False,
+            size: int,
+            style: str = "Arial",
+            bold: bool = False,
+            italic: bool = False,
     ) -> QFont:
         """Methods returns configuration for the font style and size."""
         font = QFont()
@@ -265,11 +264,11 @@ class FMIProcessorBase(QWidget):
 
     @staticmethod
     def style_button(
-        button: QPushButton,
-        bg_init_color: str,
-        bg_hover_color: str,
-        border_radius: str = BORDER_RADIUS_BUTTONS,
-        text_color: str = COLOR_FONT_GENERAL,
+            button: QPushButton,
+            bg_init_color: str,
+            bg_hover_color: str,
+            border_radius: str = BORDER_RADIUS_BUTTONS,
+            text_color: str = COLOR_FONT_GENERAL,
     ) -> None:
         """Method to style button."""
         button.setStyleSheet(
