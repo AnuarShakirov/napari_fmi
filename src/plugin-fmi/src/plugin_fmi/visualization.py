@@ -17,6 +17,7 @@ def logview(  # noqa: PLR0913
     fmi_image: NDArray | None = None,
     fmi_depth: NDArray | None = None,
     fmi_segmentation: NDArray | None = None,
+    fmi_porosity: NDArray | None = None,
     df_lith_mixed: pd.DataFrame | None = pd.DataFrame(),
     df_lith_dominant: pd.DataFrame | None = pd.DataFrame(),
     df_formation: pd.DataFrame | None = pd.DataFrame(),
@@ -30,6 +31,7 @@ def logview(  # noqa: PLR0913
         fmi_image: dataframe containing FMI image data
         fmi_depth: dataframe containing FMI depth data
         fmi_segmentation: dataframe containing FMI segmentation data
+        fmi_porosity: dataframe containing FMI porosity data
         df_lith_mixed: dataframe containing mixed lithology data
         df_lith_dominant: dataframe containing dominant lithology data
         df_formation: dataframe containing formation tops data
@@ -45,6 +47,8 @@ def logview(  # noqa: PLR0913
     if not fmi_image is None:
         num_cols += 1
     if not fmi_segmentation is None:
+        num_cols += 1
+    if not fmi_porosity is None:
         num_cols += 1
     if not df_lith_mixed.empty:
         num_cols += 1
@@ -87,13 +91,14 @@ def logview(  # noqa: PLR0913
 
         col_numbers += 1
 
-    # plot FMI image
-    if not fmi_image is None:
+    # plot fmi image original
+    if fmi_image is not None:
         fig.add_trace(
             go.Heatmap(
                 z=fmi_image,
                 y=fmi_depth,
                 colorscale="viridis",
+                showscale=False,
             ),
             row=1,
             col=col_numbers + 1,
@@ -106,10 +111,63 @@ def logview(  # noqa: PLR0913
             side="top",
             tickangle=-90,
             tickfont={"color": "white"},
-            showgrid=True,
             gridcolor="gray",
             gridwidth=0.2,
             layer="below traces",
+        )
+        col_numbers += 1
+
+    # plot segmentation results for fmi image
+    if fmi_segmentation is not None:
+        fig.add_trace(
+            go.Heatmap(
+                z=fmi_segmentation,
+                y=fmi_depth,
+                colorscale="gray",
+                showscale=False,
+            ),
+            row=1,
+            col=col_numbers + 1,
+        )
+        fig.update_xaxes(
+            title="FMI Segmentation",
+            titlefont={"color": "white"},
+            row=1,
+            col=col_numbers + 1,
+            side="top",
+            tickangle=-90,
+            tickfont={"color": "white"},
+            gridcolor="gray",
+            gridwidth=0.2,
+            layer="below traces",
+        )
+        col_numbers += 1
+
+    if fmi_porosity is not None:
+        print(fmi_porosity)
+        fig.add_trace(
+            go.Scatter(
+                x=fmi_porosity,
+                y=fmi_depth,
+                mode="lines",
+                line={"color": "blue", "width": 1},
+                name="FMI Porosity",
+            ),
+            row=1,
+            col=col_numbers + 1,
+        )
+
+        fig.update_xaxes(
+            title={"text": "FMI Porosity", "font": {"color": "white"}},
+            row=1,
+            col=col_numbers + 1,
+            side="top",
+            tickangle=-90,
+            tickfont={"color": "white"},
+            showgrid=True,
+            gridcolor="gray",
+            gridwidth=0.2,  # Set thinner grid lines
+            layer="below traces",  # Ensure grid is below the curves
         )
         col_numbers += 1
 
