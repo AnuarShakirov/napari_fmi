@@ -185,7 +185,7 @@ lint.ignore = [
   "INP001",  # flake8-no-pep420
   "PLW2901",  # Warning
   "C901",  # mccabe
-  "G003",  # flake8-logging-format
+  "G003",  # flake8-logging-file_format
   "PIE800", "PIE804",  # flake8-pie
   "T201",  # flake8-print
   "SIM102", "SIM108", "SIM110", "SIM117", "SIM118", "SIM300",  # flake8-simplify

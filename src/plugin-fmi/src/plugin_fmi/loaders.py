@@ -2,20 +2,20 @@
 
 from pathlib import Path
 
-import pandas as pd
 import lasio
+import pandas as pd
 
 
-def get_available_files(path_to_folder: Path, format: str = ".pkl") -> list[Path]:
+def get_available_files(path_to_folder: Path, file_format: str = ".pkl") -> list[Path]:
     """Method to return list of files within the folder.
 
     Args:
         path_to_folder: path to folder
-        format: format of files
+        file_format: format of files
     Returns: List of files within folder
 
     """
-    return [file for file in path_to_folder.iterdir() if file.is_file() and format in file.name]
+    return [file for file in path_to_folder.iterdir() if file.is_file() and file_format in file.name]
 
 
 def load_fmi_pickle(path_to_file: Path) -> dict:

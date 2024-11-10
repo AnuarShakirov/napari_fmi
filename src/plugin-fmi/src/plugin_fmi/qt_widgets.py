@@ -1,16 +1,14 @@
 """Module to implement QT widgets for the plugin."""
 
-from typing import Any
-
-from qtpy.QtCore import QPoint
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QLineEdit, QListWidget, QListWidgetItem
+from qtpy.QtCore import QPoint, Qt
+from qtpy.QtGui import QMouseEvent
+from qtpy.QtWidgets import QLineEdit, QListWidget, QListWidgetItem, QWidget
 
 
 class MultiSelectComboBox(QLineEdit):
     """Class to create a multi-select combo box."""
 
-    def __init__(self, items: list[str], parent=None) -> None:
+    def __init__(self, items: list[str], parent: QWidget | None) -> None:
         super().__init__(parent)
         self.setReadOnly(True)  # Make QLineEdit read-only for display purposes
         self.items = items  # List of items to display
@@ -30,7 +28,7 @@ class MultiSelectComboBox(QLineEdit):
         # Connect the itemChanged signal to update selected items when checked
         self.list_widget.itemChanged.connect(self.update_selected_items)
 
-    def mousePressEvent(self, event: Any) -> None:
+    def mousePressEvent(self, event: QMouseEvent) -> None:
         """Method to handle mouse press event."""
         # Toggle visibility of list_widget when QLineEdit is clicked
         if self.list_widget.isVisible():

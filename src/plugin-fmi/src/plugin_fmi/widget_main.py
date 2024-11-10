@@ -10,10 +10,10 @@ from napari.utils.notifications import show_info
 from napari.viewer import Viewer
 from qtpy.QtWidgets import QFileDialog, QTableWidgetItem
 
-from .widget_logs import LogsProcessor
 from .gui_main import FMIProcessorBase
 from .loaders import get_available_files, load_fmi_pickle
 from .processing import get_boolean_mask, get_whashout_curve
+from .widget_logs import LogsProcessor
 
 
 if TYPE_CHECKING:
@@ -25,6 +25,8 @@ DEPTH_KEY: str = "DEPT"
 
 
 class FMIProcessor(FMIProcessorBase):
+    """Class to process FMI images."""
+
     def __init__(self, napari_viewer: Viewer) -> None:
         super().__init__(napari_viewer)
         self.viewer = napari_viewer
@@ -194,6 +196,7 @@ class FMIProcessor(FMIProcessorBase):
         """Method to plot fmi channel in viewer."""
         if self.current_file is not None and self.current_channel is not None:
             self.clear_image_layer()
+            print(self.current_file.keys())
             self.current_layer = self.viewer.add_image(
                 self.current_file[self.current_channel],
                 name=f"{self.fmi_image_list[self.index_file].name}_{self.current_channel}",
@@ -279,5 +282,5 @@ class FMIProcessor(FMIProcessorBase):
 
     def open_logs_layout(self) -> None:
         """Method to start new layout for logging data processing."""
-        self.log_window = LogsProcessor(napari_viewer=self.viewer)
+        self.log_window = LogsProcessor(fmi_processor=self)
         self.log_window.show()

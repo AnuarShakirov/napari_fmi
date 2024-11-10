@@ -6,9 +6,18 @@ import plotly.graph_objects as go
 from napari.viewer import Viewer
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
-from qtpy.QtWidgets import QSizePolicy, QSpacerItem
-from .qt_widgets import MultiSelectComboBox
+from qtpy.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QSizePolicy,
+    QSpacerItem,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
 
 COLOR_FONT_TITLE: str = "#008170"
 COLOR_FONT_GENERAL: str = "white"
@@ -56,15 +65,15 @@ class LogsBase(QMainWindow):
         self.right_tabs.setStyleSheet(f"background-color: {BACKGROUND_COLOR_Right_LAYOUT};")  # Example color for tabs
 
         # Create tab pages
-        self.layout_tab = QWidget()
+        self.logview_tab = QWidget()
         self.cross_plot_tab = QWidget()
 
         # Add tabs to the QTabWidget
-        self.right_tabs.addTab(self.layout_tab, "Layout")
+        self.right_tabs.addTab(self.logview_tab, "Layout")
         self.right_tabs.addTab(self.cross_plot_tab, "Cross-Plot")
 
         # Set up each tab separately
-        self.setup_layout_tab()
+        self.setup_logview_tab()
         self.setup_cross_plot_tab()
 
         # Add widgets to the main layout
@@ -75,7 +84,7 @@ class LogsBase(QMainWindow):
         self.central_widget.setStyleSheet(f"background-color: {BACKGROUND_COLOR_LEFT_LAYOUT};")
         self.setCentralWidget(self.central_widget)
 
-    def setup_left_layout(self):
+    def setup_left_layout(self) -> None:
         """Setup the left layout components."""
         # Title label
         self.label_load_folders = QLabel("Select files to upload")
@@ -85,39 +94,63 @@ class LogsBase(QMainWindow):
 
         # Buttons
         self.button_well_logging = QPushButton("Well logging data")
+        self.button_well_logging.setFont(self.get_font(size=10))
+        self.style_button(
+            self.button_well_logging,
+            bg_init_color=SELECT_FOLDER_BG_INIT_COLOR,
+            bg_hover_color=SELECT_FOLDER_BG_HOVER_COLOR,
+        )
         self.left_layout.addWidget(self.button_well_logging)
         self.add_spacer_left()
 
         self.button_formation_tops = QPushButton("Formation tops data")
+        self.button_formation_tops.setFont(self.get_font(size=10))
+        self.style_button(
+            self.button_formation_tops,
+            bg_init_color=SELECT_FOLDER_BG_INIT_COLOR,
+            bg_hover_color=SELECT_FOLDER_BG_HOVER_COLOR,
+        )
         self.left_layout.addWidget(self.button_formation_tops)
         self.add_spacer_left()
 
         self.button_drilling_data = QPushButton("Drilling data")
+        self.button_drilling_data.setFont(self.get_font(size=10))
+        self.style_button(
+            self.button_drilling_data,
+            bg_init_color=SELECT_FOLDER_BG_INIT_COLOR,
+            bg_hover_color=SELECT_FOLDER_BG_HOVER_COLOR,
+        )
         self.left_layout.addWidget(self.button_drilling_data)
         self.add_spacer_left()
 
-        # Select box
-        items = ["Option 1", "Option 2", "Option 3"]
-        self.multiselect = MultiSelectComboBox(items)
-        self.left_layout.addWidget(self.multiselect)
+        # place labels for the loaded files
+        self.loadded_well_logging_file = QLabel("Well logging data file: ...")
+        self.loadded_well_logging_file.setFont(self.get_font(size=10))
+        self.loadded_formation_tops_file = QLabel("Formation tops file: ...")
+        self.loadded_formation_tops_file.setFont(self.get_font(size=10))
+        self.loadded_drilling_file = QLabel("Drilling data file: ...")
+        self.loadded_drilling_file.setFont(self.get_font(size=10))
+        self.left_layout.addWidget(self.loadded_well_logging_file)
+        self.left_layout.addWidget(self.loadded_formation_tops_file)
+        self.left_layout.addWidget(self.loadded_drilling_file)
 
         # Visualization button
-        self.button_visualize_data = QPushButton("Visualize data")
+        self.button_visualize_data = QPushButton("Visualize")
+        self.button_visualize_data.setFont(self.get_font(size=10))
+        self.style_button(
+            self.button_visualize_data,
+            bg_init_color=COLOR_BUTTON_VISUALIZE,
+            bg_hover_color=COLOR_BUTTON_VISUALIZE_HOVER,
+        )
         self.left_layout.addWidget(self.button_visualize_data)
         self.add_spacer_left()
 
-    def setup_layout_tab(self):
+    def setup_logview_tab(self) -> None:
         """Setup the Layout tab content."""
-        layout_tab_layout = QVBoxLayout()
-        layout_tab_layout.addWidget(QLabel("Content for the Layout tab"))
+        self.logview_tab_layout = QVBoxLayout()
+        self.logview_tab.setLayout(self.logview_tab_layout)
 
-        # Example button for Layout tab
-        button_layout_tab = QPushButton("Additional Feature for Layout")
-        layout_tab_layout.addWidget(button_layout_tab)
-
-        self.layout_tab.setLayout(layout_tab_layout)
-
-    def setup_cross_plot_tab(self):
+    def setup_cross_plot_tab(self) -> None:
         """Setup the Cross-Plot tab content."""
         cross_plot_tab_layout = QVBoxLayout()
         cross_plot_tab_layout.addWidget(QLabel("Content for the Cross-Plot tab"))
@@ -150,11 +183,11 @@ class LogsBase(QMainWindow):
 
     @staticmethod
     def style_button(
-            button: QPushButton,
-            bg_init_color: str,
-            bg_hover_color: str,
-            border_radius: str = BORDER_RADIUS_BUTTONS,
-            text_color: str = COLOR_FONT_GENERAL,
+        button: QPushButton,
+        bg_init_color: str,
+        bg_hover_color: str,
+        border_radius: str = BORDER_RADIUS_BUTTONS,
+        text_color: str = COLOR_FONT_GENERAL,
     ) -> None:
         """Method to style button."""
         button.setStyleSheet(
@@ -170,15 +203,3 @@ class LogsBase(QMainWindow):
             }}
         """,
         )
-
-    @staticmethod
-    def create_plotly_chart():
-        fig = go.Figure(data=go.Scatter(x=[1, 2, 3, 4], y=[10, 11, 12, 13], mode='lines+markers'))
-        fig.update_layout(title="Sample Plotly Chart")
-        # Save the figure as an HTML file
-        file_path = os.path.abspath("plotly_chart.html")
-        fig.write_html(file_path)
-        return file_path
-
-
-
