@@ -4,14 +4,11 @@ import os
 
 import plotly.graph_objects as go
 from napari.viewer import Viewer
-from qtpy.QtCore import Qt, QPoint
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont
-from qtpy.QtWidgets import QHBoxLayout, QLabel, QMainWindow, QPushButton, QSizePolicy, QSpacerItem
-from qtpy.QtWidgets import QWidget, QVBoxLayout
-
-from qtpy.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QListWidget, QListWidgetItem, QDialog
-from qtpy.QtCore import Qt, QRect
-import sys
+from qtpy.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
+from qtpy.QtWidgets import QSizePolicy, QSpacerItem
+from .qt_widgets import MultiSelectComboBox
 
 COLOR_FONT_TITLE: str = "#008170"
 COLOR_FONT_GENERAL: str = "white"
@@ -42,80 +39,94 @@ class LogsBase(QMainWindow):
 
         # Create the central widget and main layout
         self.central_widget = QWidget()
-        self.main_layout = QHBoxLayout(self.central_widget)  # Use QHBoxLayout for two-column layout
+        self.main_layout = QHBoxLayout(self.central_widget)  # Two-column layout
 
-        # Left and right columns layout
+        # Left column layout
         self.left_layout = QVBoxLayout()
         self.left_layout.setAlignment(Qt.AlignTop)
-        self.right_layout = QVBoxLayout()
-        # self.right_layout.setAlignment(Qt.Align)
+        self.setup_left_layout()
 
-        # title to load data
+        # Left widget
+        self.left_widget = QWidget()
+        self.left_widget.setStyleSheet(f"background-color: {BACKGROUND_COLOR_LEFT_LAYOUT};")  # Example color
+        self.left_widget.setLayout(self.left_layout)
+
+        # Right side with tabs
+        self.right_tabs = QTabWidget()
+        self.right_tabs.setStyleSheet(f"background-color: {BACKGROUND_COLOR_Right_LAYOUT};")  # Example color for tabs
+
+        # Create tab pages
+        self.layout_tab = QWidget()
+        self.cross_plot_tab = QWidget()
+
+        # Add tabs to the QTabWidget
+        self.right_tabs.addTab(self.layout_tab, "Layout")
+        self.right_tabs.addTab(self.cross_plot_tab, "Cross-Plot")
+
+        # Set up each tab separately
+        self.setup_layout_tab()
+        self.setup_cross_plot_tab()
+
+        # Add widgets to the main layout
+        self.main_layout.addWidget(self.left_widget, 1)  # Left widget gets a stretch factor of 1
+        self.main_layout.addWidget(self.right_tabs, 3)  # Tabs on the right get a stretch factor of 3
+
+        # Set the central widget
+        self.central_widget.setStyleSheet(f"background-color: {BACKGROUND_COLOR_LEFT_LAYOUT};")
+        self.setCentralWidget(self.central_widget)
+
+    def setup_left_layout(self):
+        """Setup the left layout components."""
+        # Title label
         self.label_load_folders = QLabel("Select files to upload")
         self.label_load_folders.setFont(self.get_font(size=12, bold=True))
-        self.set_font_color(self.label_load_folders)
         self.left_layout.addWidget(self.label_load_folders)
         self.add_spacer_left()
-        # buttons to load data
+
+        # Buttons
         self.button_well_logging = QPushButton("Well logging data")
-        self.button_well_logging.setFont(self.get_font(size=11))
-        self.style_button(
-            self.button_well_logging,
-            bg_init_color=SELECT_FOLDER_BG_INIT_COLOR,
-            bg_hover_color=SELECT_FOLDER_BG_HOVER_COLOR,
-        )
         self.left_layout.addWidget(self.button_well_logging)
         self.add_spacer_left()
 
         self.button_formation_tops = QPushButton("Formation tops data")
-        self.button_formation_tops.setFont(self.get_font(size=11))
-        self.style_button(
-            self.button_formation_tops,
-            bg_init_color=SELECT_FOLDER_BG_INIT_COLOR,
-            bg_hover_color=SELECT_FOLDER_BG_HOVER_COLOR,
-        )
         self.left_layout.addWidget(self.button_formation_tops)
         self.add_spacer_left()
 
         self.button_drilling_data = QPushButton("Drilling data")
-        self.button_drilling_data.setFont(self.get_font(size=11))
-        self.style_button(
-            self.button_drilling_data,
-            bg_init_color=SELECT_FOLDER_BG_INIT_COLOR,
-            bg_hover_color=SELECT_FOLDER_BG_HOVER_COLOR,
-        )
         self.left_layout.addWidget(self.button_drilling_data)
         self.add_spacer_left()
 
-        # test selectbox
+        # Select box
         items = ["Option 1", "Option 2", "Option 3"]
         self.multiselect = MultiSelectComboBox(items)
         self.left_layout.addWidget(self.multiselect)
 
-        # button to run visualizations
+        # Visualization button
         self.button_visualize_data = QPushButton("Visualize data")
-        self.button_visualize_data.setFont(self.get_font(size=11))
-        self.style_button(
-            self.button_visualize_data,
-            bg_init_color=COLOR_BUTTON_VISUALIZE,
-            bg_hover_color=COLOR_BUTTON_VISUALIZE_HOVER,
-        )
         self.left_layout.addWidget(self.button_visualize_data)
         self.add_spacer_left()
 
-        # configure style for layouts
-        self.left_widget = QWidget()
-        self.left_widget.setStyleSheet(f"background-color: {BACKGROUND_COLOR_LEFT_LAYOUT}")
-        self.left_widget.setLayout(self.left_layout)
-        self.right_widget = QWidget()
-        self.right_widget.setStyleSheet(f"background-color: {BACKGROUND_COLOR_Right_LAYOUT}")
-        self.right_widget.setLayout(self.right_layout)
-        self.main_layout.addWidget(self.left_widget, 1)  # Left widget gets a stretch factor of 1
-        self.main_layout.addWidget(self.right_widget, 3)  # Right widget gets a stretch factor of 3
+    def setup_layout_tab(self):
+        """Setup the Layout tab content."""
+        layout_tab_layout = QVBoxLayout()
+        layout_tab_layout.addWidget(QLabel("Content for the Layout tab"))
 
-        # Set the central widget
-        self.central_widget.setStyleSheet(f"background-color: {BACKGROUND_COLOR_LEFT_LAYOUT}")
-        self.setCentralWidget(self.central_widget)
+        # Example button for Layout tab
+        button_layout_tab = QPushButton("Additional Feature for Layout")
+        layout_tab_layout.addWidget(button_layout_tab)
+
+        self.layout_tab.setLayout(layout_tab_layout)
+
+    def setup_cross_plot_tab(self):
+        """Setup the Cross-Plot tab content."""
+        cross_plot_tab_layout = QVBoxLayout()
+        cross_plot_tab_layout.addWidget(QLabel("Content for the Cross-Plot tab"))
+
+        # Example button for Cross-Plot tab
+        button_cross_plot_tab = QPushButton("Additional Feature for Cross-Plot")
+        cross_plot_tab_layout.addWidget(button_cross_plot_tab)
+
+        self.cross_plot_tab.setLayout(cross_plot_tab_layout)
 
     @staticmethod
     def get_font(size: int, style: str = "Arial", bold: bool = False, italic: bool = False) -> QFont:
@@ -169,148 +180,5 @@ class LogsBase(QMainWindow):
         fig.write_html(file_path)
         return file_path
 
-
-class MultiSelectComboBox(QLineEdit):
-    def init(self, items, parent=None):
-        super().init(parent)
-        self.setReadOnly(True)  # Make QLineEdit read-only for display purposes
-        self.items = items
-        self.selected_items = []
-
-        # Set up the list widget as a dropdown popup
-        self.list_widget = QListWidget()
-        self.list_widget.setWindowFlags(Qt.Popup)
-        self.list_widget.setFocusPolicy(Qt.NoFocus)
-
-        # Populate list widget with checkable items
-        for item_text in items:
-            item = QListWidgetItem(item_text)
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)  # Make item checkable
-            item.setCheckState(Qt.Unchecked)
-            self.list_widget.addItem(item)
-
-        # Connect the itemChanged signal to update selected items when checked
-        self.list_widget.itemChanged.connect(self.update_selected_items)
-
-        # Connect focus out event to close the popup
-        self.list_widget.installEventFilter(self)
-
-    def mousePressEvent(self, event):
-        # Show list_widget as a popup just below the QLineEdit
-        self.list_widget.move(self.mapToGlobal(QPoint(0, self.height())))
-        self.list_widget.show()
-        self.list_widget.setFocus()
-
-    def update_selected_items(self):
-        # Gather checked items and display them in QLineEdit
-        self.selected_items = [
-            self.list_widget.item(i).text()
-            for i in range(self.list_widget.count())
-            if self.list_widget.item(i).checkState() == Qt.Checked
-        ]
-        self.setText(", ".join(self.selected_items))
-
-    def eventFilter(self, source, event):
-        if source == self.list_widget and event.type() == event.FocusOut:
-            self.list_widget.hide()
-        return super().eventFilter(source, event)
-
-    def get_selected_items(self):
-        # Method to retrieve selected items
-        return self.selected_items
-
-
-class MultiSelectComboBox(QLineEdit):
-    def init(self, items, parent=None):
-        super().init(parent)
-        self.setReadOnly(True)  # Make QLineEdit read-only for display purposes
-        self.items = items
-        self.selected_items = []
-
-        # Set up the list widget as a dropdown popup
-        self.list_widget = QListWidget()
-        self.list_widget.setWindowFlags(Qt.Popup)
-        self.list_widget.setFocusPolicy(Qt.NoFocus)
-
-        # Populate list widget with checkable items
-        for item_text in items:
-            item = QListWidgetItem(item_text)
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)  # Make item checkable
-            item.setCheckState(Qt.Unchecked)
-            self.list_widget.addItem(item)
-
-        # Connect the itemChanged signal to update selected items when checked
-        self.list_widget.itemChanged.connect(self.update_selected_items)
-
-        # Connect focus out event to close the popup
-        self.list_widget.installEventFilter(self)
-
-    def mousePressEvent(self, event):
-        # Show list_widget as a popup just below the QLineEdit
-        self.list_widget.move(self.mapToGlobal(QPoint(0, self.height())))
-        self.list_widget.show()
-        self.list_widget.setFocus()
-
-    def update_selected_items(self):
-        # Gather checked items and display them in QLineEdit
-        self.selected_items = [
-            self.list_widget.item(i).text()
-            for i in range(self.list_widget.count())
-            if self.list_widget.item(i).checkState() == Qt.Checked
-        ]
-        self.setText(", ".join(self.selected_items))
-
-    def eventFilter(self, source, event):
-        if source == self.list_widget and event.type() == event.FocusOut:
-            self.list_widget.hide()
-        return super().eventFilter(source, event)
-
-    def get_selected_items(self):
-        # Method to retrieve selected items
-        return self.selected_items
-
-
-class MultiSelectComboBox(QLineEdit):
-    def __init__(self, items, parent=None):
-        super().__init__(parent)
-        self.setReadOnly(True)  # Make QLineEdit read-only for display purposes
-        self.items = items
-        self.selected_items = []
-
-        # Set up the list widget as a dropdown popup
-        self.list_widget = QListWidget(parent)  # Set the parent to main widget
-        self.list_widget.setWindowFlags(Qt.ToolTip)  # Allows toggling visibility
-
-        # Populate list widget with checkable items
-        for item_text in items:
-            item = QListWidgetItem(item_text)
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)  # Make item checkable
-            item.setCheckState(Qt.Unchecked)
-            self.list_widget.addItem(item)
-
-        # Connect the itemChanged signal to update selected items when checked
-        self.list_widget.itemChanged.connect(self.update_selected_items)
-
-    def mousePressEvent(self, event):
-        # Toggle visibility of list_widget when QLineEdit is clicked
-        if self.list_widget.isVisible():
-            self.list_widget.hide()  # Hide if already visible
-        else:
-            # Show list_widget as a popup just below the QLineEdit
-            self.list_widget.move(self.mapToGlobal(QPoint(0, self.height())))
-            self.list_widget.show()
-
-    def update_selected_items(self):
-        # Gather checked items and display them in QLineEdit
-        self.selected_items = [
-            self.list_widget.item(i).text()
-            for i in range(self.list_widget.count())
-            if self.list_widget.item(i).checkState() == Qt.Checked
-        ]
-        self.setText(", ".join(self.selected_items))
-
-    def get_selected_items(self):
-        # Method to retrieve selected items
-        return self.selected_items
 
 
