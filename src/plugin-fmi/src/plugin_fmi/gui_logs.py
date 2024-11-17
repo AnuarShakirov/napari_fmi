@@ -18,6 +18,8 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
+from .qt_widgets import MultiSelectComboBox
+
 
 COLOR_FONT_TITLE: str = "#008170"
 COLOR_FONT_GENERAL: str = "white"
@@ -63,7 +65,6 @@ class LogsBase(QMainWindow):
         # Right side with tabs
         self.right_tabs = QTabWidget()
         self.right_tabs.setStyleSheet(f"background-color: {BACKGROUND_COLOR_Right_LAYOUT};")  # Example color for tabs
-
         # Create tab pages
         self.logview_tab = QWidget()
         self.cross_plot_tab = QWidget()
@@ -71,6 +72,8 @@ class LogsBase(QMainWindow):
         # Add tabs to the QTabWidget
         self.right_tabs.addTab(self.logview_tab, "Layout")
         self.right_tabs.addTab(self.cross_plot_tab, "Cross-Plot")
+        # connect click events explicitly
+        self.right_tabs.currentChanged.connect(self.hide_selectboxes)
 
         # Set up each tab separately
         self.setup_logview_tab()
@@ -133,6 +136,7 @@ class LogsBase(QMainWindow):
         self.left_layout.addWidget(self.loadded_well_logging_file)
         self.left_layout.addWidget(self.loadded_formation_tops_file)
         self.left_layout.addWidget(self.loadded_drilling_file)
+        self.add_spacer_left()
 
         # Visualization button
         self.button_visualize_data = QPushButton("Visualize")
@@ -143,6 +147,24 @@ class LogsBase(QMainWindow):
             bg_hover_color=COLOR_BUTTON_VISUALIZE_HOVER,
         )
         self.left_layout.addWidget(self.button_visualize_data)
+        self.add_spacer_left()
+
+        # place here fake multiselect combobox and then replace them
+        self.label_select_logs = QLabel("Select logs to plot:")
+        self.label_select_logs.setFont(self.get_font(size=10))
+        self.left_layout.addWidget(self.label_select_logs)
+        # add multiselect combobox
+        self.logs_to_plot = MultiSelectComboBox(items=["None"], parent=None)
+        self.left_layout.addWidget(self.label_select_logs)
+        self.left_layout.addWidget(self.logs_to_plot)
+        self.add_spacer_left()
+
+        self.label_select_drilling = QLabel("Select drilling data to plot:")
+        self.label_select_drilling.setFont(self.get_font(size=10))
+        self.left_layout.addWidget(self.label_select_drilling)
+        # add multiselect combobox
+        self.drilling_logs_to_plot = MultiSelectComboBox(items=["None"], parent=None)
+        self.left_layout.addWidget(self.drilling_logs_to_plot)
         self.add_spacer_left()
 
     def setup_logview_tab(self) -> None:
@@ -203,3 +225,19 @@ class LogsBase(QMainWindow):
             }}
         """,
         )
+
+    def hide_selectboxes(self) -> None:
+        """Method to hide select boxes in case cross-plot tab is selected."""
+        # check if current tab is cross-plot
+        current_tab = self.right_tabs.currentIndex()
+        # index 0 for layout and 1 for cross-plot
+        if current_tab == 1:
+            self.label_select_logs.hide()
+            self.logs_to_plot.hide()
+            self.label_select_drilling.hide()
+            self.drilling_logs_to_plot.hide()
+        else:
+            self.label_select_logs.show()
+            self.logs_to_plot.show()
+            self.label_select_drilling.show()
+            self.drilling_logs_to_plot.show()

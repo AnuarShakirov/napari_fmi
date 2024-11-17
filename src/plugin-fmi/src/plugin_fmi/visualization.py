@@ -8,11 +8,10 @@ import plotly.graph_objects as go
 from numpy.typing import NDArray
 from plotly.subplots import make_subplots
 
-
 warnings.filterwarnings("ignore")
 
 
-def logview(  # noqa: PLR0913
+def logview(  # noqa: PLR0913 , PLR0912, PLR0915
     df_log: pd.DataFrame,
     fmi_image: NDArray | None = None,
     fmi_depth: NDArray | None = None,
@@ -21,6 +20,7 @@ def logview(  # noqa: PLR0913
     df_lith_mixed: pd.DataFrame | None = pd.DataFrame(),
     df_lith_dominant: pd.DataFrame | None = pd.DataFrame(),
     df_formation: pd.DataFrame | None = pd.DataFrame(),
+    df_drilling: pd.DataFrame = pd.DataFrame(),
     features_to_log: list = [],
     col_depth: str = "DEPTH",
 ) -> plotly.subplots.make_subplots:
@@ -36,13 +36,15 @@ def logview(  # noqa: PLR0913
         df_lith_dominant: dataframe containing dominant lithology data
         df_formation: dataframe containing formation tops data
         features_to_log: list of features to log
+        df_drilling: dataframe containing drilling data
         col_depth: column name for depth
 
     Returns:
         plotly.subplots.make_subplots: plotly figure
     """
-    num_cols = len(features_to_log) if features_to_log else df_log.shape[1]
-
+    num_cols: int = df_log.shape[1]
+    if not df_drilling.empty:
+        num_cols += df_drilling.shape[1]
     # Add columns for additional data
     if not fmi_image is None:
         num_cols += 1
@@ -58,10 +60,73 @@ def logview(  # noqa: PLR0913
         num_cols += 1
     # Create the figure
     fig = make_subplots(rows=1, cols=num_cols, shared_yaxes=True)
-    features = [col for col in df_log.columns if col not in [col_depth] + ["WELL"]]
+    features_logs = [col for col in df_log.columns if col not in [col_depth] + ["WELL"]]
+    # init counter or trace number
     col_numbers = 0
+    # check if bit size in drilling data if so, plot it first
+    if not df_drilling.empty:
+        features_drilling = [col for col in df_drilling.columns if col not in [col_depth] + ["WELL"]]
+        col_depth_drilling = [col for col in df_drilling.columns if "DEPTH" in col.upper()]
+        # get bit feature
+        bit_feature: str = [col for col in features_drilling if "bit" in col.lower()]
+        # check if bit size is available
+        if len(bit_feature):
+            # drop bit feature from the list
+            features_drilling = [feat for feat in features_drilling if feat not in bit_feature]
+            fig.add_trace(
+                go.Scatter(
+                    x=df_drilling[bit_feature[0]],
+                    y=df_drilling[col_depth_drilling[0]],
+                    mode="lines",
+                    line={"color": "white", "width": 1},
+                    name=bit_feature[0],
+                    fill="tozerox",
+                ),
+                row=1,
+                col=1,
+            )
+            fig.update_xaxes(
+                title={"text": bit_feature[0], "font": {"color": "white"}},
+                row=1,
+                col=col_numbers + 1,
+                side="top",
+                tickangle=-90,
+                tickfont={"color": "white"},
+                showgrid=True,
+                gridcolor="gray",
+                gridwidth=0.2,  # Set thinner grid lines
+                layer="below traces",  # Ensure grid is below the curves
+            )
+            col_numbers += 1
 
-    for ix, feat in enumerate(features):
+        for feat in features_drilling:
+            fig.add_trace(
+                go.Scatter(
+                    x=df_drilling[feat],
+                    y=df_drilling[col_depth],
+                    mode="lines",
+                    line={"color": "white", "width": 1},
+                    name=feat,
+                ),
+                row=1,
+                col=col_numbers + 1,
+            )
+
+            fig.update_xaxes(
+                title={"text": feat, "font": {"color": "white"}},
+                row=1,
+                col=col_numbers + 1,
+                side="top",
+                tickangle=-90,
+                tickfont={"color": "white"},
+                showgrid=True,
+                gridcolor="gray",
+                gridwidth=0.2,  # Set thinner grid lines
+                layer="below traces",  # Ensure grid is below the curves
+            )
+            col_numbers += 1
+
+    for feat in features_logs:
         fig.add_trace(
             go.Scatter(
                 x=df_log[feat],
@@ -71,13 +136,13 @@ def logview(  # noqa: PLR0913
                 name=feat,
             ),
             row=1,
-            col=ix + 1,
+            col=col_numbers + 1,
         )
 
         fig.update_xaxes(
             title={"text": feat, "font": {"color": "white"}},
             row=1,
-            col=ix + 1,
+            col=col_numbers + 1,
             side="top",
             tickangle=-90,
             tickfont={"color": "white"},
@@ -87,7 +152,7 @@ def logview(  # noqa: PLR0913
             layer="below traces",  # Ensure grid is below the curves
         )
         if feat in features_to_log:
-            fig.update_xaxes(col=ix + 1, type="log")
+            fig.update_xaxes(col=col_numbers + 1, type="log")
 
         col_numbers += 1
 
@@ -144,7 +209,6 @@ def logview(  # noqa: PLR0913
         col_numbers += 1
 
     if fmi_porosity is not None:
-        print(fmi_porosity)
         fig.add_trace(
             go.Scatter(
                 x=fmi_porosity,
@@ -183,7 +247,6 @@ def logview(  # noqa: PLR0913
                     fill="tozerox",
                     mode="lines",
                     name=zone,
-                    line={"color": "white"},
                 ),
                 row=1,
                 col=col_numbers + 1,

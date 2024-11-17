@@ -4,6 +4,9 @@ from pathlib import Path
 
 import lasio
 import pandas as pd
+from openpyxl.utils.exceptions import InvalidFileException
+
+from .constants import N_COLS_FORMATION_TOPS
 
 
 def get_available_files(path_to_folder: Path, file_format: str = ".pkl") -> list[Path]:
@@ -41,3 +44,41 @@ def load_las(file_path: str) -> pd.DataFrame:
     """
     # Check if the file exists
     return lasio.read(file_path).df().reset_index(drop=False)
+
+
+def load_formation_tops(path: Path) -> (pd.DataFrame, str):
+    """Method to load formation tops data from xlsx file."""
+    # get file name
+    file_name = path.name
+    # try to open file
+    try:
+        df_form = pd.read_excel(path)
+    except InvalidFileException as e:
+        message = f"Can not open file {file_name}. Error message is: {e}"
+        return pd.DataFrame(), message
+    # check if file is empty
+    if df_form.empty:
+        message = f"File {file_name} is empty!"
+        return pd.DataFrame(), message
+    # Define conditions
+    condition_aap = (df_form == "AAP").any(axis=1)
+    condition_aop = (df_form == "AOP").any(axis=1)
+    # Filter the DataFrame
+    if condition_aap.any():
+        df_filtered = df_form[condition_aap]
+    elif condition_aop.any():
+        df_filtered = df_form[condition_aop]
+    else:
+        df_filtered = df_form.copy()
+    # check if n columns is 6
+    if df_filtered.shape[1] != N_COLS_FORMATION_TOPS:
+        message = "For well column names are not correct." " Table should contain 6 columns!"
+        return pd.DataFrame(), message
+    # raname columns
+    df_filtered.columns = ["TOP", "FORMATION_SHORT", "FORMATION", "LATERAL", "VERSION", "DATE"]
+    # get only TOP and FORMATION columns
+    df_filtered = df_filtered[["TOP", "FORMATION"]]
+    # generate BOTTOM AND WELL columns
+    df_filtered["BOTTOM"] = df_filtered.TOP.shift(-1)
+    df_filtered["BOTTOM"].iloc[-1] = df_filtered.TOP.iloc[-1] + 20000
+    return df_filtered, ""
