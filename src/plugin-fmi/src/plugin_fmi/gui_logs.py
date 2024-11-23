@@ -1,25 +1,24 @@
 """Module to configure gui for logs window."""
 
-import os
-
-import plotly.graph_objects as go
 from napari.viewer import Viewer
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (
-    QHBoxLayout,
-    QLabel,
     QMainWindow,
-    QPushButton,
-    QSizePolicy,
     QSpacerItem,
     QTabWidget,
+    QPushButton,
+    QLabel,
     QVBoxLayout,
+    QHBoxLayout,
     QWidget,
+    QComboBox,
+    QRadioButton,
+    QButtonGroup,
+    QSizePolicy,
 )
 
 from .qt_widgets import MultiSelectComboBox
-
 
 COLOR_FONT_TITLE: str = "#008170"
 COLOR_FONT_GENERAL: str = "white"
@@ -174,14 +173,97 @@ class LogsBase(QMainWindow):
 
     def setup_cross_plot_tab(self) -> None:
         """Setup the Cross-Plot tab content."""
+
+        # Main vertical layout
         cross_plot_tab_layout = QVBoxLayout()
-        cross_plot_tab_layout.addWidget(QLabel("Content for the Cross-Plot tab"))
+        cross_plot_tab_layout.setAlignment(Qt.AlignTop)
 
-        # Example button for Cross-Plot tab
-        button_cross_plot_tab = QPushButton("Additional Feature for Cross-Plot")
-        cross_plot_tab_layout.addWidget(button_cross_plot_tab)
+        # Upper part: Horizontal layout for left and right columns
+        upper_part_layout = QHBoxLayout()
+        upper_part_layout.setAlignment(Qt.AlignTop)
+        # Wrap the upper part in a QWidget to apply stylesheet
+        upper_part_widget = QWidget()
+        upper_part_widget.setLayout(upper_part_layout)
+        upper_part_widget.setStyleSheet(f"background-color: {BACKGROUND_COLOR_LEFT_LAYOUT};")
 
+        # LEFT COLUMN
+        left_column_layout = QVBoxLayout()
+        self.label_x_axis = QLabel("X-axis")
+        self.label_x_axis.setFont(self.get_font(size=14, bold=True))
+        # Select curve widget
+        self.label_select_curve_left = QLabel("Select curve:")
+        self.label_select_curve_left.setFont(self.get_font(size=12))
+        self.combo_box_select_curve_left = QComboBox()
+        self.combo_box_select_curve_left.addItems(["Curve 1", "Curve 2", "Curve 3"])
+        # Select scale widget
+        self.label_select_scale_left = QLabel("Select scale:")
+        self.label_select_scale_left.setFont(self.get_font(size=12))
+        self.radio_normal_left = QRadioButton("Normal")
+        self.radio_normal_left.setChecked(True)
+        self.radio_log_left = QRadioButton("Log")
+        self.scale_button_group_left = QButtonGroup()
+        self.scale_button_group_left.addButton(self.radio_normal_left)
+        self.scale_button_group_left.addButton(self.radio_log_left)
+        # Add left column widgets
+        left_column_layout.addWidget(self.label_x_axis)
+        left_column_layout.addWidget(self.label_select_curve_left)
+        left_column_layout.addWidget(self.combo_box_select_curve_left)
+        left_column_layout.addWidget(self.label_select_scale_left)
+        scale_button_layout_left = QHBoxLayout()
+        scale_button_layout_left.addWidget(self.radio_normal_left)
+        scale_button_layout_left.addWidget(self.radio_log_left)
+        left_column_layout.addLayout(scale_button_layout_left)
+        # Wrap left column in a QWidget
+        left_column_widget = QWidget()
+        left_column_widget.setLayout(left_column_layout)
+
+        # RIGHT COLUMN
+        right_column_layout = QVBoxLayout()
+        self.label_y_axis = QLabel("Y-axis")
+        self.label_y_axis.setFont(self.get_font(size=14, bold=True))
+        # Select curve widget
+        self.label_select_curve_right = QLabel("Select curve:")
+        self.label_select_curve_right.setFont(self.get_font(size=12))
+        self.combo_box_select_curve_right = QComboBox()
+        self.combo_box_select_curve_right.addItems(["Curve A", "Curve B", "Curve C"])
+        # Select scale widget
+        self.label_select_scale_right = QLabel("Select scale:")
+        self.label_select_scale_right.setFont(self.get_font(size=12))
+        self.radio_normal_right = QRadioButton("Normal")
+        self.radio_normal_right.setChecked(True)
+        self.radio_log_right = QRadioButton("Log")
+        self.scale_button_group_right = QButtonGroup()
+        self.scale_button_group_right.addButton(self.radio_normal_right)
+        self.scale_button_group_right.addButton(self.radio_log_right)
+        # Add right column widgets
+        right_column_layout.addWidget(self.label_y_axis)
+        right_column_layout.addWidget(self.label_select_curve_right)
+        right_column_layout.addWidget(self.combo_box_select_curve_right)
+        right_column_layout.addWidget(self.label_select_scale_right)
+        # Scale buttons
+        scale_button_layout_right = QHBoxLayout()
+        scale_button_layout_right.addWidget(self.radio_normal_right)
+        scale_button_layout_right.addWidget(self.radio_log_right)
+        right_column_layout.addLayout(scale_button_layout_right)
+        # Wrap right column in a QWidget
+        right_column_widget = QWidget()
+        right_column_widget.setLayout(right_column_layout)
+        # Add left and right columns to the upper part layout
+        upper_part_layout.addWidget(left_column_widget)
+        upper_part_layout.addWidget(right_column_widget)
+        # Add the upper part widget to the main vertical layout
+        cross_plot_tab_layout.addWidget(upper_part_widget)
+
+        # LOWER PART
+        lower_part_layout = QVBoxLayout()
+        lower_part_layout.addWidget(QLabel("Lower Part Content"))  # Placeholder for lower part content
+        lower_part_widget = QWidget()
+        lower_part_widget.setLayout(lower_part_layout)
+        cross_plot_tab_layout.addWidget(lower_part_widget)
+
+        # Set the layout to the Cross-Plot tab
         self.cross_plot_tab.setLayout(cross_plot_tab_layout)
+
 
     @staticmethod
     def get_font(size: int, style: str = "Arial", bold: bool = False, italic: bool = False) -> QFont:
