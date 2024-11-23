@@ -31,7 +31,7 @@ BACKGROUND_COLOR_Right_LAYOUT: str = "#000000"
 # colors for vizualize button
 COLOR_BUTTON_VISUALIZE: str = "#4169E1"
 COLOR_BUTTON_VISUALIZE_HOVER: str = "#16348C"
-
+COLOR_MULTISELECTBOX: str = "#414851"
 
 class LogsBase(QMainWindow):
     """Class represents GUI configuration for the FMI plugin."""
@@ -92,6 +92,7 @@ class LogsBase(QMainWindow):
         # Title label
         self.label_load_folders = QLabel("Select files to upload")
         self.label_load_folders.setFont(self.get_font(size=12, bold=True))
+        self.set_font_color(self.label_load_folders)
         self.left_layout.addWidget(self.label_load_folders)
         self.add_spacer_left()
 
@@ -129,10 +130,13 @@ class LogsBase(QMainWindow):
         # place labels for the loaded files
         self.loadded_well_logging_file = QLabel("Well logging data file: ...")
         self.loadded_well_logging_file.setFont(self.get_font(size=10))
+        self.set_font_color(self.loadded_well_logging_file, color="white")
         self.loadded_formation_tops_file = QLabel("Formation tops file: ...")
         self.loadded_formation_tops_file.setFont(self.get_font(size=10))
+        self.set_font_color(self.loadded_formation_tops_file, color="white")
         self.loadded_drilling_file = QLabel("Drilling data file: ...")
         self.loadded_drilling_file.setFont(self.get_font(size=10))
+        self.set_font_color(self.loadded_drilling_file, color="white")
         self.left_layout.addWidget(self.loadded_well_logging_file)
         self.left_layout.addWidget(self.loadded_formation_tops_file)
         self.left_layout.addWidget(self.loadded_drilling_file)
@@ -147,25 +151,28 @@ class LogsBase(QMainWindow):
             bg_hover_color=COLOR_BUTTON_VISUALIZE_HOVER,
         )
         self.left_layout.addWidget(self.button_visualize_data)
-        self.add_spacer_left()
 
         # place here fake multiselect combobox and then replace them
         self.label_select_logs = QLabel("Select logs to plot:")
         self.label_select_logs.setFont(self.get_font(size=10))
+        self.set_font_color(self.label_select_logs, color="white")
         self.left_layout.addWidget(self.label_select_logs)
         # add multiselect combobox
         self.logs_to_plot = MultiSelectComboBox(items=["None"], parent=None)
+        self.logs_to_plot.setStyleSheet(f"background-color: {COLOR_MULTISELECTBOX}; color: white;")
+        self.logs_to_plot.setFont(self.get_font(size=10))
         self.left_layout.addWidget(self.label_select_logs)
         self.left_layout.addWidget(self.logs_to_plot)
-        self.add_spacer_left()
 
         self.label_select_drilling = QLabel("Select drilling data to plot:")
         self.label_select_drilling.setFont(self.get_font(size=10))
+        self.set_font_color(self.label_select_drilling, color="white")
         self.left_layout.addWidget(self.label_select_drilling)
         # add multiselect combobox
         self.drilling_logs_to_plot = MultiSelectComboBox(items=["None"], parent=None)
+        self.drilling_logs_to_plot.setStyleSheet(f"background-color: {COLOR_MULTISELECTBOX}; color: white;")
+        self.drilling_logs_to_plot.setFont(self.get_font(size=10))
         self.left_layout.addWidget(self.drilling_logs_to_plot)
-        self.add_spacer_left()
 
     def setup_logview_tab(self) -> None:
         """Setup the Layout tab content."""
@@ -189,18 +196,23 @@ class LogsBase(QMainWindow):
         # LEFT COLUMN
         left_column_layout = QVBoxLayout()
         self.label_x_axis = QLabel("X-axis")
-        self.label_x_axis.setFont(self.get_font(size=14, bold=True))
+        self.label_x_axis.setFont(self.get_font(size=12, bold=True))
+        self.set_font_color(self.label_x_axis, color="white")
         # Select curve widget
         self.label_select_curve_left = QLabel("Select curve:")
-        self.label_select_curve_left.setFont(self.get_font(size=12))
+        self.label_select_curve_left.setFont(self.get_font(size=10))
+        self.set_font_color(self.label_select_curve_left, color="white")
         self.combo_box_select_curve_left = QComboBox()
         self.combo_box_select_curve_left.addItems(["None"])
         # Select scale widget
         self.label_select_scale_left = QLabel("Select scale:")
-        self.label_select_scale_left.setFont(self.get_font(size=12))
+        self.label_select_scale_left.setFont(self.get_font(size=10))
+        self.set_font_color(self.label_select_scale_left, color="white")
         self.radio_normal_left = QRadioButton("linear")
         self.radio_normal_left.setChecked(True)
+        self.set_font_color(self.radio_normal_left, color="white")
         self.radio_log_left = QRadioButton("log")
+        self.set_font_color(self.radio_log_left, color="white")
         self.scale_button_group_left = QButtonGroup()
         self.scale_button_group_left.addButton(self.radio_normal_left)
         self.scale_button_group_left.addButton(self.radio_log_left)
@@ -220,18 +232,23 @@ class LogsBase(QMainWindow):
         # RIGHT COLUMN
         right_column_layout = QVBoxLayout()
         self.label_y_axis = QLabel("Y-axis")
-        self.label_y_axis.setFont(self.get_font(size=14, bold=True))
+        self.label_y_axis.setFont(self.get_font(size=12, bold=True))
+        self.set_font_color(self.label_y_axis, color="white")
         # Select curve widget
         self.label_select_curve_right = QLabel("Select curve:")
-        self.label_select_curve_right.setFont(self.get_font(size=12))
+        self.label_select_curve_right.setFont(self.get_font(size=10))
+        self.set_font_color(self.label_select_curve_right, color="white")
         self.combo_box_select_curve_right = QComboBox()
         self.combo_box_select_curve_right.addItems(["None"])
         # Select scale widget
         self.label_select_scale_right = QLabel("Select scale:")
-        self.label_select_scale_right.setFont(self.get_font(size=12))
+        self.label_select_scale_right.setFont(self.get_font(size=10))
+        self.set_font_color(self.label_select_scale_right, color="white")
         self.radio_normal_right = QRadioButton("linear")
         self.radio_normal_right.setChecked(True)
+        self.set_font_color(self.radio_normal_right, color="white")
         self.radio_log_right = QRadioButton("log")
+        self.set_font_color(self.radio_log_right, color="white")
         self.scale_button_group_right = QButtonGroup()
         self.scale_button_group_right.addButton(self.radio_normal_right)
         self.scale_button_group_right.addButton(self.radio_log_right)

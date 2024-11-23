@@ -42,6 +42,7 @@ class LogsProcessor(LogsBase):
         self.fmi_porosity: NDArray | None = None
 
         self.formation_tops_data: pd.DataFrame = pd.DataFrame()
+        self.formation_tops_data_processed: pd.DataFrame = pd.DataFrame()
         self.drilling_data: pd.DataFrame = pd.DataFrame()
         self.logging_data: pd.DataFrame = pd.DataFrame()
 
