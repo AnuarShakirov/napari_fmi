@@ -48,6 +48,7 @@ class LogsProcessor(LogsBase):
         self.drilling_data_to_plot: pd.DataFrame = pd.DataFrame()
         self.logging_data_to_plot: pd.DataFrame = pd.DataFrame()
         self.formation_tops_cross_plot: pd.DataFrame = pd.DataFrame()
+        self.fmi_data_to_plot: pd.DataFrame = pd.DataFrame()
 
         # dict to map curve names to dataframe
         self.curve_mapping = {}
@@ -55,8 +56,8 @@ class LogsProcessor(LogsBase):
         # prepare fmi image for visualization
         self.prepare_fmi_image()
         self.prepare_fmi_segmentation_results()
-        self.prepare_fmi_porosity()
         self.prepare_fmi_image_depth()
+        self.prepare_fmi_porosity()
         self.map_curve_to_dataframe()
 
         # dataframe to store the data for cross plot
@@ -294,6 +295,11 @@ class LogsProcessor(LogsBase):
         # Remove NaN values form fmi image
         fmi_porosity = self.process_fmi_data(fmi_porosity, single_dim=True)
         self.fmi_porosity = fmi_porosity
+        # prepare dataframe sampled
+        depth_col = self.sample_rows(self.fmi_image_depth_cur)
+        fmi_porosity = self.sample_rows(fmi_porosity)
+        self.fmi_data_to_plot = pd.DataFrame({"DEPTH": depth_col, "PHIT_FMI": fmi_porosity})
+
 
     @staticmethod
     def sample_rows(data: NDArray) -> NDArray:
@@ -344,7 +350,7 @@ class LogsProcessor(LogsBase):
         curve_mapping_original = {
             "WELL_LOGGING": list(self.logging_data.columns) if not self.logging_data.empty else [],
             "DRILLING": list(self.drilling_data.columns) if not self.drilling_data.empty else [],
-            "PHIT_FMI": self.fmi_porosity if not self.fmi_porosity is None else [],
+            "PHIT_FMI": list(self.fmi_data_to_plot.columns) if not self.fmi_data_to_plot.empty else [],
         }
         self.curve_mapping = {
             value: key
