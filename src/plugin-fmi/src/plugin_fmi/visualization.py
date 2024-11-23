@@ -2,11 +2,15 @@
 
 import warnings
 
+import numpy as np
 import pandas as pd
 import plotly
 import plotly.graph_objects as go
 from numpy.typing import NDArray
+from plotly.colors import qualitative
 from plotly.subplots import make_subplots
+from statsmodels.api import OLS, add_constant
+
 
 warnings.filterwarnings("ignore")
 
@@ -286,6 +290,180 @@ def logview(  # noqa: PLR0913 , PLR0912, PLR0915
         showlegend=False,
         plot_bgcolor="black",
         paper_bgcolor="black",
+    )
+
+    return fig
+
+
+def cross_plot(  # noqa: PLR0913, PLR0912
+    df_cur: pd.DataFrame,
+    x_col: str,
+    y_col: str,
+    x_scale: str = "linear",
+    y_scale: str = "linear",
+    interpolate: bool = False,
+) -> go.Figure:
+    """Method to visualize the cross plot using Plotly."""
+    # Handle non-positive values for log scale
+    if x_scale == "log":
+        df_cur = df_cur[df_cur[x_col] > 0]
+    if y_scale == "log":
+        df_cur = df_cur[df_cur[y_col] > 0]
+
+    # Make interpolation for curves with lower number of missing points
+    if interpolate:
+        depth_step_x = df_cur[df_cur[x_col].notna()]["DEPTH"].diff().mean()
+        depth_step_y = df_cur[df_cur[y_col].notna()]["DEPTH"].diff().mean()
+        if depth_step_x < depth_step_y:
+            df_cur[x_col] = df_cur[x_col].interpolate(method="linear")
+        else:
+            df_cur[y_col] = df_cur[y_col].interpolate(method="linear")
+
+    if "FORMATION" in df_cur.columns:
+        df_cur["FORMATION"] = df_cur["FORMATION"].ffill()
+
+    x_data = df_cur[x_col]
+    y_data = df_cur[y_col]
+
+    x_bins = {}
+    y_bins = {}
+    if x_scale == "log":
+        x_bins = {
+            "start": np.log10(x_data.min()),
+            "end": np.log10(x_data.max()),
+            "size": 0.1,
+        }
+    if y_scale == "log":
+        y_bins = {
+            "start": np.log10(y_data.min()),
+            "end": np.log10(y_data.max()),
+            "size": 0.1,
+        }
+
+    fig = go.Figure()
+
+    if "FORMATION" in df_cur.columns:
+        unique_formations = df_cur["FORMATION"].unique()
+        color_palette = qualitative.Plotly
+        color_map = {formation: color_palette[i % len(color_palette)] for i, formation in enumerate(unique_formations)}
+        df_cur["color"] = df_cur["FORMATION"].map(color_map)
+    else:
+        df_cur["color"] = "royalblue"
+
+    if "FORMATION" in df_cur.columns:
+        for formation in unique_formations:
+            formation_data = df_cur[df_cur["FORMATION"] == formation]
+            fig.add_trace(
+                go.Scatter(
+                    x=formation_data[x_col],
+                    y=formation_data[y_col],
+                    mode="markers",
+                    name=formation,
+                    marker={"color": color_map[formation]},
+                    text=formation_data["FORMATION"],
+                    hovertemplate="<b>X:</b> %{x}<br><b>Y:</b> %{y}<br><b>Formation:</b> %{text}<br><extra></extra>",
+                    showlegend=True,
+                ),
+            )
+    else:
+        fig.add_trace(
+            go.Scatter(
+                x=x_data,
+                y=y_data,
+                mode="markers",
+                name="Data Points",
+                marker={"color": "royalblue"},
+                hovertemplate="<b>X:</b> %{x}<br><b>Y:</b> %{y}<br><extra></extra>",
+            ),
+        )
+
+    df_no_na = df_cur.dropna(subset=[x_col, y_col])
+    X = add_constant(df_no_na[x_col].values)
+    y = df_no_na[y_col].values
+    model = OLS(y, X).fit()
+    trendline_x = np.linspace(df_no_na[x_col].min(), df_no_na[x_col].max(), 100)
+    trendline_y = model.predict(add_constant(trendline_x))
+
+    intercept = model.params[0]
+    slope = model.params[1]
+    r_squared = model.rsquared
+
+    fig.add_trace(
+        go.Scatter(
+            x=trendline_x,
+            y=trendline_y,
+            mode="lines",
+            name="Trendline (OLS)",
+            line={"color": "red", "dash": "dash"},
+            hovertemplate=f"y = {intercept:.2f} + {slope:.2f}x<br>R² = {r_squared:.2f}<br>",
+        ),
+    )
+
+    fig.add_trace(
+        go.Histogram(
+            x=x_data,
+            name=f"{x_col}",
+            yaxis="y2",
+            opacity=0.5,
+            marker={"color": "blue"},
+            showlegend=False,
+            autobinx=x_scale != "log",
+            xbins=x_bins if x_scale == "log" else None,
+        ),
+    )
+    fig.add_trace(
+        go.Histogram(
+            y=y_data,
+            name=f"{y_col}",
+            xaxis="x2",
+            opacity=0.5,
+            marker={"color": "green"},
+            showlegend=False,
+            autobiny=y_scale != "log",
+            ybins=y_bins if y_scale == "log" else None,
+        ),
+    )
+
+    fig.update_layout(
+        xaxis={
+            "title": x_col,
+            "type": x_scale,
+            "domain": [0, 0.85],
+            "tickcolor": "white",
+            "tickfont": {"color": "white"},
+            "titlefont": {"color": "white"},
+            "gridcolor": "white",
+            "zerolinecolor": "white",
+        },
+        yaxis={
+            "title": y_col,
+            "type": y_scale,
+            "domain": [0, 0.85],
+            "tickcolor": "white",
+            "tickfont": {"color": "white"},
+            "titlefont": {"color": "white"},
+            "gridcolor": "white",
+            "zerolinecolor": "white",
+        },
+        xaxis2={
+            "domain": [0.85, 1],
+            "showgrid": False,
+            "zeroline": False,
+        },
+        yaxis2={
+            "domain": [0.85, 1],
+            "showgrid": False,
+            "zeroline": False,
+        },
+        bargap=0.1,
+        plot_bgcolor="black",
+        paper_bgcolor="black",
+    )
+
+    fig.update_layout(
+        showlegend=True,
+        xaxis_layer="below traces",
+        yaxis_layer="below traces",
     )
 
     return fig

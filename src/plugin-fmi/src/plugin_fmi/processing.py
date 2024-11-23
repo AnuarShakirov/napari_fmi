@@ -41,9 +41,7 @@ def pivot_data_for_visualization(
     """Method to pivot data for visualization."""
     # pivot table
     df_pivot = (
-        df_strat[[col_depth, col_reference]]
-        .dropna()
-        .pivot(index=col_depth, columns=col_reference, values=col_depth)  # noqa: PD010
+        df_strat[[col_depth, col_reference]].dropna().pivot(index=col_depth, columns=col_reference, values=col_depth)
     )
     # fillna with 0
     df_pivot = df_pivot.fillna(0)

@@ -4,21 +4,22 @@ from napari.viewer import Viewer
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (
+    QButtonGroup,
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
     QMainWindow,
+    QPushButton,
+    QRadioButton,
+    QSizePolicy,
     QSpacerItem,
     QTabWidget,
-    QPushButton,
-    QLabel,
     QVBoxLayout,
-    QHBoxLayout,
     QWidget,
-    QComboBox,
-    QRadioButton,
-    QButtonGroup,
-    QSizePolicy,
 )
 
 from .qt_widgets import MultiSelectComboBox
+
 
 COLOR_FONT_TITLE: str = "#008170"
 COLOR_FONT_GENERAL: str = "white"
@@ -173,7 +174,6 @@ class LogsBase(QMainWindow):
 
     def setup_cross_plot_tab(self) -> None:
         """Setup the Cross-Plot tab content."""
-
         # Main vertical layout
         cross_plot_tab_layout = QVBoxLayout()
         cross_plot_tab_layout.setAlignment(Qt.AlignTop)
@@ -194,13 +194,13 @@ class LogsBase(QMainWindow):
         self.label_select_curve_left = QLabel("Select curve:")
         self.label_select_curve_left.setFont(self.get_font(size=12))
         self.combo_box_select_curve_left = QComboBox()
-        self.combo_box_select_curve_left.addItems(["Curve 1", "Curve 2", "Curve 3"])
+        self.combo_box_select_curve_left.addItems(["None"])
         # Select scale widget
         self.label_select_scale_left = QLabel("Select scale:")
         self.label_select_scale_left.setFont(self.get_font(size=12))
-        self.radio_normal_left = QRadioButton("Normal")
+        self.radio_normal_left = QRadioButton("linear")
         self.radio_normal_left.setChecked(True)
-        self.radio_log_left = QRadioButton("Log")
+        self.radio_log_left = QRadioButton("log")
         self.scale_button_group_left = QButtonGroup()
         self.scale_button_group_left.addButton(self.radio_normal_left)
         self.scale_button_group_left.addButton(self.radio_log_left)
@@ -225,13 +225,13 @@ class LogsBase(QMainWindow):
         self.label_select_curve_right = QLabel("Select curve:")
         self.label_select_curve_right.setFont(self.get_font(size=12))
         self.combo_box_select_curve_right = QComboBox()
-        self.combo_box_select_curve_right.addItems(["Curve A", "Curve B", "Curve C"])
+        self.combo_box_select_curve_right.addItems(["None"])
         # Select scale widget
         self.label_select_scale_right = QLabel("Select scale:")
         self.label_select_scale_right.setFont(self.get_font(size=12))
-        self.radio_normal_right = QRadioButton("Normal")
+        self.radio_normal_right = QRadioButton("linear")
         self.radio_normal_right.setChecked(True)
-        self.radio_log_right = QRadioButton("Log")
+        self.radio_log_right = QRadioButton("log")
         self.scale_button_group_right = QButtonGroup()
         self.scale_button_group_right.addButton(self.radio_normal_right)
         self.scale_button_group_right.addButton(self.radio_log_right)
@@ -255,15 +255,13 @@ class LogsBase(QMainWindow):
         cross_plot_tab_layout.addWidget(upper_part_widget)
 
         # LOWER PART
-        lower_part_layout = QVBoxLayout()
-        lower_part_layout.addWidget(QLabel("Lower Part Content"))  # Placeholder for lower part content
-        lower_part_widget = QWidget()
-        lower_part_widget.setLayout(lower_part_layout)
-        cross_plot_tab_layout.addWidget(lower_part_widget)
+        self.lower_part_layout = QVBoxLayout()
+        self.lower_part_widget = QWidget()
+        self.lower_part_widget.setLayout(self.lower_part_layout)
+        cross_plot_tab_layout.addWidget(self.lower_part_widget)
 
         # Set the layout to the Cross-Plot tab
         self.cross_plot_tab.setLayout(cross_plot_tab_layout)
-
 
     @staticmethod
     def get_font(size: int, style: str = "Arial", bold: bool = False, italic: bool = False) -> QFont:

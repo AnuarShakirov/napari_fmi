@@ -2,6 +2,8 @@
 
 import os
 import warnings
+from contextlib import suppress
+from functools import reduce
 from pathlib import Path
 
 import numpy as np
@@ -20,7 +22,8 @@ from .gui_logs import LogsBase
 from .loaders import load_formation_tops, load_las
 from .processing import pivot_data_for_visualization
 from .protocol_classes import FMIProcessorProtocol
-from .visualization import logview
+from .visualization import cross_plot, logview
+
 
 warnings.filterwarnings("ignore")
 
@@ -33,23 +36,59 @@ class LogsProcessor(LogsBase):
         self.fmi_processor = fmi_processor
         self.init_click_events()
 
-        self.logging_data: pd.DataFrame | None = None
         self.fmi_image_cur: NDArray | None = None
         self.fmi_segmentation_results: NDArray | None = None
         self.fmi_image_depth_cur: NDArray | None = None
         self.fmi_porosity: NDArray | None = None
+
         self.formation_tops_data: pd.DataFrame = pd.DataFrame()
         self.drilling_data: pd.DataFrame = pd.DataFrame()
+        self.logging_data: pd.DataFrame = pd.DataFrame()
 
         self.drilling_data_to_plot: pd.DataFrame = pd.DataFrame()
         self.logging_data_to_plot: pd.DataFrame = pd.DataFrame()
+        self.formation_tops_cross_plot: pd.DataFrame = pd.DataFrame()
+
+        # dict to map curve names to dataframe
+        self.curve_mapping = {}
+
+        # prepare fmi image for visualization
+        self.prepare_fmi_image()
+        self.prepare_fmi_segmentation_results()
+        self.prepare_fmi_porosity()
+        self.prepare_fmi_image_depth()
+        self.map_curve_to_dataframe()
+
+        # dataframe to store the data for cross plot
+        self.cross_plot_data = pd.DataFrame()
 
     def init_click_events(self) -> None:
         """Method to connect click events with actions."""
         self.button_well_logging.clicked.connect(self.load_well_logging_file)
-        self.button_visualize_data.clicked.connect(self.plot_layout)
         self.button_formation_tops.clicked.connect(self.load_formation_tops_file)
         self.button_drilling_data.clicked.connect(self.load_drilling_data_file)
+        self.update_visualize_button_behavior()
+
+    def init_gui(self) -> None:
+        """Method to initialize the GUI and connfigure visualize button behavior."""
+        super().init_gui()
+        # Connect tab change signal to update button behavior
+        self.right_tabs.currentChanged.connect(self.update_visualize_button_behavior)
+        # Initial setup for the current tab
+        self.update_visualize_button_behavior()
+
+    def update_visualize_button_behavior(self) -> None:
+        """Update the button behavior based on the current tab index."""
+        # Disconnect any previous connections
+        with suppress(TypeError):
+            self.button_visualize_data.clicked.disconnect()
+        # Get the current tab index
+        current_tab = self.right_tabs.currentIndex()
+        # Connect the appropriate function based on the current tab
+        if current_tab == 0:
+            self.button_visualize_data.clicked.connect(self.plot_layout)
+        elif current_tab == 1:
+            self.button_visualize_data.clicked.connect(self.plot_cross_plot)
 
     def load_well_logging_file(self) -> None:
         """Method to load well logging .las file."""
@@ -62,6 +101,8 @@ class LogsProcessor(LogsBase):
         self.logging_data: pd.DataFrame = load_las(self.path_to_well_logging)
         self.update_selectbox_for_logs()
         self.update_qlabel_for_selected_logs()
+        self.map_curve_to_dataframe()
+        self.merge_dataframes_for_crossplot()
 
     def load_formation_tops_file(self) -> None:
         """Method to load formation tops .xlsx file."""
@@ -71,12 +112,12 @@ class LogsProcessor(LogsBase):
         if output == "":
             return
         self.path_to_formation_tops: Path = Path(output)
-        formation_tops_data, msg = load_formation_tops(self.path_to_formation_tops)
+        self.formation_tops_data, msg = load_formation_tops(self.path_to_formation_tops)
         if msg != "":
             show_info(msg)
             return
 
-        self.formation_tops_data = pivot_data_for_visualization(formation_tops_data)
+        self.formation_tops_data_processed = pivot_data_for_visualization(self.formation_tops_data)
         self.update_qlabel_for_selected_formation_tops()
 
     def load_drilling_data_file(self) -> None:
@@ -90,6 +131,8 @@ class LogsProcessor(LogsBase):
         self.drilling_data: pd.DataFrame = load_las(self.path_to_drilling_data)
         self.update_selectbox_for_drilling()
         self.update_qlabel_for_selected_drilling()
+        self.map_curve_to_dataframe()
+        self.merge_dataframes_for_crossplot()
 
     def prepare_well_logging_data_to_plot(self) -> None:
         """Method to prepare well logging data for visualization."""
@@ -117,11 +160,6 @@ class LogsProcessor(LogsBase):
 
     def plot_layout(self) -> None:
         """Method to plot the layout of the logging data."""
-        # prepare fmi image for visualization
-        self.prepare_fmi_image()
-        self.prepare_fmi_segmentation_results()
-        self.prepare_fmi_porosity()
-        self.prepare_fmi_image_depth()
         self.prepare_well_logging_data_to_plot()
         self.prepare_drilling_data_to_plot()
 
@@ -132,7 +170,7 @@ class LogsProcessor(LogsBase):
             fmi_segmentation=self.fmi_segmentation_results,
             fmi_depth=self.fmi_image_depth_cur,
             fmi_porosity=self.fmi_porosity,
-            df_formation=self.formation_tops_data,
+            df_formation=self.formation_tops_data_processed,
             df_drilling=self.drilling_data_to_plot,
         )
 
@@ -166,6 +204,57 @@ class LogsProcessor(LogsBase):
             self.logview_tab_layout.removeWidget(widget_to_remove)
             widget_to_remove.deleteLater()
         self.logview_tab_layout.addWidget(self.browser)
+
+    def plot_cross_plot(self) -> None:
+        """Method to plot cross-plot."""
+        self.prepare_well_logging_data_to_plot()
+        self.prepare_drilling_data_to_plot()
+        self.merge_dataframes_for_crossplot()
+        x_scale = self.scale_button_group_left.checkedButton().text()
+        y_scale = self.scale_button_group_right.checkedButton().text()
+        x_feature = self.combo_box_select_curve_left.currentText()
+        y_feature = self.combo_box_select_curve_right.currentText()
+        interpolate = self.curve_mapping[x_feature] != self.curve_mapping[y_feature]
+        self.cross_plot = cross_plot(
+            df_cur=self.cross_plot_data,
+            x_col=x_feature,
+            y_col=y_feature,
+            x_scale=x_scale,
+            y_scale=y_scale,
+            interpolate=interpolate,
+        )
+
+        # Generate the HTML with Plotly
+        html_content_cross_plot = self.cross_plot.to_html(include_plotlyjs="cdn")
+
+        # Add custom CSS to change the background color of the container
+        css = """
+                <style>
+                    body {
+                        background-color: black;
+                    }
+                    .plot-container {
+                        background-color: black;
+                    }
+                </style>
+                """
+        html_content_cross_plot = css + html_content_cross_plot
+
+        # Save the HTML content to a file
+        file_path = os.path.abspath("plotly_cross_plot.html")
+        with open(file_path, "w") as f:
+            f.write(html_content_cross_plot)
+
+        # Load the HTML into QWebEngineView
+        self.browser_cross_plot = QWebEngineView()
+        self.browser_cross_plot.setUrl(QUrl.fromLocalFile(file_path))
+
+        # Clear previous content from the tab layout
+        for i in reversed(range(self.lower_part_layout.count())):
+            widget_to_remove = self.lower_part_layout.itemAt(i).widget()
+            self.lower_part_layout.removeWidget(widget_to_remove)
+            widget_to_remove.deleteLater()
+        self.lower_part_layout.addWidget(self.browser_cross_plot)
 
     def prepare_fmi_image(self) -> None:
         """Method to prepare FMI image for visualization."""
@@ -249,3 +338,65 @@ class LogsProcessor(LogsBase):
     def update_qlabel_for_selected_drilling(self) -> None:
         """Method to update label for selected drilling data."""
         self.loadded_drilling_file.setText(f"Drilling data file: {self.path_to_drilling_data.name}")
+
+    def map_curve_to_dataframe(self) -> None:
+        """Method to map curve names to dataframe."""
+        curve_mapping_original = {
+            "WELL_LOGGING": list(self.logging_data.columns) if not self.logging_data.empty else [],
+            "DRILLING": list(self.drilling_data.columns) if not self.drilling_data.empty else [],
+            "PHIT_FMI": self.fmi_porosity if not self.fmi_porosity is None else [],
+        }
+        self.curve_mapping = {
+            value: key
+            for key, values in curve_mapping_original.items()
+            if values  # Exclude empty lists
+            for value in values
+        }
+        # assign keys of the dict to the select curve widget
+        self.combo_box_select_curve_left.clear()
+        self.combo_box_select_curve_right.clear()
+        self.combo_box_select_curve_left.addItems(list(self.curve_mapping.keys()))
+        self.combo_box_select_curve_right.addItems(list(self.curve_mapping.keys()))
+
+    def merge_dataframes_for_crossplot(self) -> None:
+        """Method to merge dataframes for cross plot."""
+        # check if the dataframes are empty
+        df_fmi = pd.DataFrame()
+        if self.fmi_porosity is not None:
+            df_fmi = pd.DataFrame({"DEPTH": self.fmi_image_depth_cur, "PHIT_FMI": self.fmi_porosity})
+        # get depth column for the dataframes
+        depth_col_logging = [
+            col for col in self.logging_data.columns if "depth" in col.lower() and "orig" not in col.lower()
+        ]
+        depth_col_drilling = [
+            col for col in self.drilling_data.columns if "depth" in col.lower() and "orig" not in col.lower()
+        ]
+        # prepare formation tops data
+        self.prepare_formation_tops_data_for_crops_plot()
+        # renamge the depth column
+        if len(depth_col_logging):
+            self.logging_data.rename(columns={depth_col_logging[0]: "DEPTH"}, inplace=True)
+        if len(depth_col_drilling):
+            self.drilling_data.rename(columns={depth_col_drilling[0]: "DEPTH"}, inplace=True)
+        # check which dataframes are empty
+        list_df_to_merge = [
+            df_cur
+            for df_cur in [df_fmi, self.logging_data, self.drilling_data, self.formation_tops_cross_plot]
+            if not df_cur.empty
+        ]
+        # merge the dataframes on DEPTH
+        self.cross_plot_data = reduce(
+            lambda left, right: pd.merge(left, right, on="DEPTH", how="outer"),
+            list_df_to_merge,
+        ).sort_values("DEPTH")
+
+    def prepare_formation_tops_data_for_crops_plot(self) -> None:
+        """Method to prepare formation tops data for cross plot."""
+        # check if the formation tops data is empty
+        if self.formation_tops_data.empty:
+            return
+        # prepare formation tops data
+        formation_tops = self.formation_tops_data_processed.copy()
+        formation_columns = [col for col in formation_tops.columns if "DEPTH" not in col]
+        formation_tops["FORMATION"] = self.formation_tops_data_processed[formation_columns].idxmax(axis=1)
+        self.formation_tops_cross_plot = formation_tops[["DEPTH", "FORMATION"]]
