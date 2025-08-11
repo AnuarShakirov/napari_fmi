@@ -18,6 +18,15 @@ from qtpy.QtWidgets import (
 )
 from superqt import QCollapsible, QLabeledSlider
 
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+import os
+from pathlib import Path
+
+# Set absolute path to bundled plugin
+plugin_dir = Path(__file__).resolve().parent / "platforms"
+os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = str(plugin_dir)
 
 COLOR_FONT_TITLE: str = "#008170"
 COLOR_FONT_GENERAL: str = "white"

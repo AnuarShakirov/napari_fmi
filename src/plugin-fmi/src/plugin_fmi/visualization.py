@@ -13,7 +13,10 @@ from statsmodels.api import OLS, add_constant
 
 
 warnings.filterwarnings("ignore")
-
+import matplotlib
+matplotlib.use("Qt5Agg")
+import matplotlib.pyplot as plt
+# from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 def logview(  # noqa: PLR0913 , PLR0912, PLR0915
     df_log: pd.DataFrame,
@@ -72,25 +75,29 @@ def logview(  # noqa: PLR0913 , PLR0912, PLR0915
         features_drilling = [col for col in df_drilling.columns if col not in [col_depth] + ["WELL"]]
         col_depth_drilling = [col for col in df_drilling.columns if "DEPTH" in col.upper()]
         # get bit feature
-        bit_feature: str = [col for col in features_drilling if "bit" in col.lower()]
-        # check if bit size is available
-        if len(bit_feature):
-            # drop bit feature from the list
-            features_drilling = [feat for feat in features_drilling if feat not in bit_feature]
+        bit_features = [col for col in features_drilling if "bit" in col.lower()]
+        if bit_features:
+            bit_col = bit_features[0]
+            features_drilling = [
+                col for col in df_drilling.columns
+                if col not in [col_depth, "WELL"]
+                and pd.api.types.is_numeric_dtype(df_drilling[col])
+                and df_drilling[col].notna().sum() > 0
+            ]
             fig.add_trace(
                 go.Scatter(
-                    x=df_drilling[bit_feature[0]],
+                    x=df_drilling[bit_col],
                     y=df_drilling[col_depth_drilling[0]],
                     mode="lines",
                     line={"color": "white", "width": 1},
-                    name=bit_feature[0],
+                    name=bit_col,
                     fill="tozerox",
                 ),
                 row=1,
                 col=1,
             )
             fig.update_xaxes(
-                title={"text": bit_feature[0], "font": {"color": "white"}},
+                title={"text": bit_col, "font": {"color": "white"}},
                 row=1,
                 col=col_numbers + 1,
                 side="top",
@@ -98,12 +105,13 @@ def logview(  # noqa: PLR0913 , PLR0912, PLR0915
                 tickfont={"color": "white"},
                 showgrid=True,
                 gridcolor="gray",
-                gridwidth=0.2,  # Set thinner grid lines
-                layer="below traces",  # Ensure grid is below the curves
+                gridwidth=0.2,
+                layer="below traces",
             )
             col_numbers += 1
 
         for feat in features_drilling:
+            print(f"Plotting drilling feature: {feat}, dtype: {df_drilling[feat].dtype}, NaNs: {df_drilling[feat].isna().sum()}")
             fig.add_trace(
                 go.Scatter(
                     x=df_drilling[feat],

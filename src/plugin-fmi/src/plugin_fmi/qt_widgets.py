@@ -4,6 +4,9 @@ from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QMouseEvent
 from qtpy.QtWidgets import QLineEdit, QListWidget, QListWidgetItem, QWidget
 
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
 from .constants import N_LOGS
 
 

@@ -5,6 +5,7 @@ import warnings
 from contextlib import suppress
 from functools import reduce
 from pathlib import Path
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -193,13 +194,21 @@ class LogsProcessor(LogsBase):
         html_content = css + html_content
 
         # Save the HTML content to a file
-        file_path = os.path.abspath("plotly_chart.html")
-        with open(file_path, "w") as f:
+        # file_path = os.path.abspath("plotly_chart.html")
+        # with open(file_path, "w") as f:
+        #     f.write(html_content)
+        
+        # Use system temp directory to avoid permission issues
+        temp_path = os.path.join(tempfile.gettempdir(), "plotly_chart.html")
+
+        # Save the HTML content to the temp file
+        with open(temp_path, "w", encoding="utf-8") as f:
             f.write(html_content)
+            
 
         # Load the HTML into QWebEngineView
         self.browser = QWebEngineView()
-        self.browser.setUrl(QUrl.fromLocalFile(file_path))
+        self.browser.setUrl(QUrl.fromLocalFile(temp_path))
         # Clear previous content from the tab layout
         for i in reversed(range(self.logview_tab_layout.count())):
             widget_to_remove = self.logview_tab_layout.itemAt(i).widget()
@@ -242,14 +251,18 @@ class LogsProcessor(LogsBase):
                 """
         html_content_cross_plot = css + html_content_cross_plot
 
-        # Save the HTML content to a file
-        file_path = os.path.abspath("plotly_cross_plot.html")
-        with open(file_path, "w") as f:
+        # # Save the HTML content to a file
+        # file_path = os.path.abspath("plotly_cross_plot.html")
+        # with open(file_path, "w") as f:
+        #     f.write(html_content_cross_plot)
+        # Save the HTML content to a temporary file to avoid permission errors
+        temp_path_cross = os.path.join(tempfile.gettempdir(), "plotly_cross_plot.html")
+        with open(temp_path_cross, "w", encoding="utf-8") as f:
             f.write(html_content_cross_plot)
 
         # Load the HTML into QWebEngineView
         self.browser_cross_plot = QWebEngineView()
-        self.browser_cross_plot.setUrl(QUrl.fromLocalFile(file_path))
+        self.browser_cross_plot.setUrl(QUrl.fromLocalFile(temp_path_cross))
 
         # Clear previous content from the tab layout
         for i in reversed(range(self.lower_part_layout.count())):
